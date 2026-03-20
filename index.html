@@ -15,7 +15,7 @@
         h1 { font-size: 22px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; color: white; }
         .info-box { font-size: 14px; color: #ccc; margin-bottom: 30px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
         input { width: 100%; background: rgba(0,0,0,0.5); border: 2px solid #333; border-radius: 15px; padding: 20px; color: white; font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; box-sizing: border-box; }
-        input:focus { border-color: var(--neon-blue); outline: none; box-shadow: 0 0 20px rgba(0,210,255,0.4); }
+        input:focus { border-color: var(--neon-blue); outline: none; }
         .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 16px; transition: 0.3s; }
         .btn-check { background: var(--neon-blue); color: #000; }
         .btn-confirm { background: var(--neon-green); color: #000; display: none; margin-top: 20px; animation: pulse 2s infinite; }
@@ -30,12 +30,10 @@
         <div class="logo-icon"><i class="fas fa-futbol"></i></div>
         <h1 id="ui-titulli">NGARKIMI...</h1>
         <div class="info-box" id="ui-info">Duke marrë të dhënat...</div>
-
         <div id="inputGroup">
-            <input type="number" id="userId" placeholder="ID JUAJ">
+            <input type="text" id="userId" placeholder="ID JUAJ">
             <button class="btn btn-check" onclick="verifiko()">KONTROLLO</button>
         </div>
-        
         <div id="msg"></div>
         <button id="confBtn" class="btn btn-confirm" onclick="finalizo()">KONFIRMO PJESËMARRJEN</button>
     </div>
@@ -48,7 +46,6 @@
     </div>
 
 <script>
-    // KONFIGURIMI I FIREBASE (NGJITE TËNDIN KËTU)
     const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -56,7 +53,6 @@
     let lojtariAktual = null;
     let settings = {};
 
-    // Lexo Settings Live nga Admin Paneli
     db.collection("config").doc("main").onSnapshot(doc => {
         if(doc.exists) {
             settings = doc.data();
@@ -66,16 +62,14 @@
     });
 
     async function verifiko() {
-        const id = document.getElementById('userId').value;
+        const idVal = document.getElementById('userId').value.trim();
         const msg = document.getElementById('msg');
         const btn = document.getElementById('confBtn');
         
         const doc = await db.collection("config").doc("staff").get();
         if(!doc.exists) return;
         
-        const lojtaret = doc.data().lojtaret;
-        const lojtari = lojtaret.find(p => p.id === id);
-
+        const lojtari = doc.data().lojtaret.find(p => p.id === idVal);
         msg.style.display = "block";
 
         if(!lojtari) {
@@ -85,9 +79,8 @@
         }
 
         lojtariAktual = lojtari;
-        // Merr diten e muajit nga data e caktuar ne admin (psh "26 Mars" -> 26)
-        const dita = parseInt(settings.data); 
-        const shift = lojtari.s[dita - 1];
+        const dita = parseInt(settings.data) || 1; 
+        const shift = lojtari.s[dita - 1] || "OFF";
 
         if(shift.includes("16")) {
             msg.style.color = "#ff3131";
