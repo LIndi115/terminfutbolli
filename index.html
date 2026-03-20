@@ -3,109 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINI FUTBOLL</title>
+    <title>LKIA Football Match</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        :root {
-            --neon-lime: #adff2f;
-            --stadium-blue: #0a192f;
-            --white: #ffffff;
-            --danger: #ff4444;
-        }
-
-        body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            font-family: 'Barlow Condensed', sans-serif;
-            background: var(--stadium-blue);
-            color: var(--white);
-            overflow: hidden;
-        }
-
-        .stadium-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(10, 25, 47, 0.85), rgba(10, 25, 47, 0.95)), 
-                        url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=1920');
-            background-size: cover; background-position: center;
-            z-index: -1;
-        }
-
-        .container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh; padding: 20px; text-align: center;
-        }
-
-        .main-title {
-            font-family: 'Archivo Black', sans-serif;
-            font-size: clamp(45px, 12vw, 90px);
-            line-height: 0.85; text-transform: uppercase;
-            margin-bottom: 30px; font-style: italic;
-            background: linear-gradient(to bottom, #fff 40%, #888 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-
-        .player-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            padding: 40px 30px; width: 100%; max-width: 400px;
-            position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
-        input {
-            width: 100%; background: transparent; border: 3px solid var(--white);
-            padding: 18px; color: white; font-size: 26px; font-weight: 900;
-            text-align: center; font-family: 'Barlow Condensed';
-            margin-bottom: 25px; outline: none; transition: 0.3s;
-        }
-
-        input:focus { border-color: var(--neon-lime); box-shadow: 0 0 20px rgba(173, 255, 47, 0.3); }
-
-        .btn-sport {
-            width: 100%; background: var(--white); color: black;
-            border: none; padding: 20px; font-weight: 900; font-size: 22px;
-            text-transform: uppercase; cursor: pointer; transition: 0.2s;
-            clip-path: polygon(4% 0, 100% 0, 96% 100%, 0 100%);
-        }
-
-        .btn-sport:hover { background: var(--neon-lime); transform: scale(1.03); }
-
-        #status-area { display: none; margin-top: 10px; }
-        .status-badge {
-            font-size: 32px; font-weight: 900; padding: 15px;
-            text-transform: uppercase; margin-bottom: 20px;
-            border: 2px solid rgba(255,255,255,0.1);
-        }
-
-        /* Footer info eshte bere hidden (e fshehur) */
-        .footer-info {
-            display: none;
-        }
+        body { background: #0f111a; color: white; font-family: 'Segoe UI', sans-serif; padding: 15px; }
+        .card { background: #1a1d29; max-width: 450px; margin: auto; padding: 20px; border-radius: 20px; border: 1px solid #333; }
+        .match-info { border: 1px solid #00d2ff; padding: 15px; border-radius: 12px; margin: 15px 0; background: rgba(0,210,255,0.05); text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; text-align: center; font-size: 18px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-check { background: #00d2ff; color: black; }
+        .btn-konfirmo { background: #39ff14; color: black; display: none; margin-top: 15px; }
+        .status-msg { margin-top: 15px; padding: 10px; border-radius: 8px; display: none; text-align: center; font-weight: bold; }
+        .pjesemarresit { margin-top: 25px; border-top: 1px solid #333; padding-top: 15px; }
+        .p-item { background: #111; padding: 10px; border-radius: 8px; margin-bottom: 5px; border-left: 4px solid #39ff14; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-    <div class="stadium-bg"></div>
+<div class="card">
+    <h2 style="text-align:center; color:#00d2ff">LKIA MATCH CENTER</h2>
+    <div id="mDetails" class="match-info">Duke ngarkuar...</div>
 
-    <div class="container">
-        <h1 class="main-title" id="ui-titulli">TERMINI<br>FUTBOLL</h1>
+    <input type="text" id="pID" placeholder="Shkruaj ID tënde (Telefonin)">
+    <button class="btn btn-check" onclick="kycu()">KONTROLLO ORARIN TIM</button>
 
-        <div class="player-card">
-            <div id="entry-form">
-                <input type="text" id="idInput" placeholder="SHKRUAJ ID TUAJ">
-                <button class="btn-sport" onclick="checkPlayer()">KONTROLLO STATUSIN</button>
-            </div>
+    <div id="sMsg" class="status-msg"></div>
+    <button id="btnK" class="btn btn-konfirmo" onclick="konfirmo()">KONFIRMO PJESËMARRJEN ✅</button>
 
-            <div id="status-area">
-                <div id="status-text" class="status-badge"></div>
-                <button id="confirm-btn" class="btn-sport" style="background: var(--neon-lime); display: none;" onclick="finalConfirm()">KONFIRMO PJESËMARRJEN</button>
-                <button class="btn-sport" style="margin-top: 15px; font-size: 14px; background: #222; color: white;" onclick="location.reload()">KTHEHU</button>
-            </div>
-        </div>
+    <div class="pjesemarresit">
+        <h4><i class="fas fa-list"></i> Lista e Konfirmuar:</h4>
+        <div id="lista"></div>
     </div>
+</div>
 
 <script>
     const firebaseConfig = {
@@ -119,65 +50,69 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let player = null;
-    let settings = {};
+    let dataN = ""; 
+    let lAktual = null;
 
-    // Marrim vetem titullin, tjerat i bllokojme
-    db.collection("config").doc("main").onSnapshot(doc => {
+    async function init() {
+        const doc = await db.collection("config").doc("main").get();
         if(doc.exists) {
-            settings = doc.data();
-            // Nese ka titull te ri ne Firebase e merr, perndryshe mbetet "TERMINI FUTBOLL"
-            if(settings.titulli) {
-                document.getElementById('ui-titulli').innerHTML = settings.titulli.replace(" ", "<br>");
-            }
+            const d = doc.data();
+            dataN = d.data;
+            document.getElementById('mDetails').innerHTML = `<strong>${d.titulli}</strong><br>${d.vendi}<br>📅 ${d.dita}, ${d.data} | ⏰ ${d.ora}`;
         }
-    });
+        shfaqListen();
+    }
 
-    async function checkPlayer() {
-        const id = document.getElementById('idInput').value;
-        const statusArea = document.getElementById('status-area');
-        const entryForm = document.getElementById('entry-form');
-        const statusText = document.getElementById('status-text');
-        const confBtn = document.getElementById('confirm-btn');
+    async function kycu() {
+        const id = document.getElementById('pID').value;
+        const staff = await db.collection("config").doc("staff").get();
+        const p = staff.data().lojtaret.find(x => x.id === id);
 
-        if(!id) return;
+        if(!p) return alert("ID nuk ekziston!");
+        lAktual = p;
 
-        const doc = await db.collection("config").doc("staff").get();
-        const found = doc.data().lojtaret.find(p => p.id === id);
+        const dita = parseInt(dataN.split('.')[0]); // Merr diten psh 25
+        const orari = p.s[dita-1]; // Shikon orarin te kolona 25
 
-        entryForm.style.display = "none";
-        statusArea.style.display = "block";
+        const sMsg = document.getElementById('sMsg');
+        const btnK = document.getElementById('btnK');
+        sMsg.style.display = "block";
 
-        if(!found) {
-            statusText.innerText = "ID E GABUAR";
-            statusText.style.color = "var(--danger)";
-            return;
-        }
-
-        player = found;
-        // Supozojme diten e pare nese nuk ka date ne Firebase
-        const dita = parseInt(settings.data) || 1; 
-        const shift = player.s[dita-1] || "OFF";
-
-        if(shift.includes("16")) {
-            statusText.innerText = `⚠️ ${player.n}, JE NË PUNË!`;
-            statusText.style.color = "var(--danger)";
+        if(orari === "16") {
+            sMsg.innerHTML = `Përshëndetje ${p.n}, je MASDITE (16-00). Je në punë! ❌`;
+            sMsg.style.background = "rgba(255,0,0,0.2)";
+            btnK.style.display = "none";
         } else {
-            statusText.innerText = `✅ ${player.n}, JE I LIRË!`;
-            statusText.style.color = "var(--neon-lime)";
-            confBtn.style.display = "block";
+            let t = (orari === "OFF") ? "PUSHIM" : (orari === "8") ? "PARADITE" : orari;
+            sMsg.innerHTML = `Përshëndetje ${p.n}, je ${t}. Mund të vish! ✅`;
+            sMsg.style.background = "rgba(0,255,0,0.2)";
+            btnK.style.display = "block";
         }
     }
 
-    function finalConfirm() {
-        db.collection("terminet").doc(player.n).set({
-            emri: player.n,
-            koha: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            alert("U REGJISTRUA ME SUKSES!");
-            location.reload();
-        });
+    async function konfirmo() {
+        const ref = db.collection("matches").doc("current");
+        const doc = await ref.get();
+        let list = doc.exists ? doc.data().pjesemarresit : [];
+        if(!list.find(x => x.id === lAktual.id)) {
+            list.push({ n: lAktual.n, id: lAktual.id });
+            await ref.set({ pjesemarresit: list });
+            alert("U konfirmove!");
+            shfaqListen();
+        } else { alert("Je në listë!"); }
     }
+
+    async function shfaqListen() {
+        const doc = await db.collection("matches").doc("current").get();
+        const div = document.getElementById('lista');
+        div.innerHTML = "";
+        if(doc.exists) {
+            doc.data().pjesemarresit.forEach((p, i) => {
+                div.innerHTML += `<div class="p-item"><span>${i+1}. ${p.n}</span> <i class="fas fa-check-circle"></i></div>`;
+            });
+        }
+    }
+    init();
 </script>
 </body>
 </html>
