@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSE Arena - Konfirmimi</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --neon-blue: #00d2ff; --neon-green: #39ff14; --dark-bg: #0a0b10; }
+        body { background-color: var(--dark-bg); background-image: radial-gradient(circle at top right, #1a2a6c, transparent), radial-gradient(circle at bottom left, #b21f1f, transparent); color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 40px 30px; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        .logo-icon { font-size: 50px; color: var(--neon-blue); margin-bottom: 20px; filter: drop-shadow(0 0 10px var(--neon-blue)); }
+        h1 { font-size: 22px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; color: white; }
+        .info-box { font-size: 14px; color: #ccc; margin-bottom: 30px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
+        input { width: 100%; background: rgba(0,0,0,0.5); border: 2px solid #333; border-radius: 15px; padding: 20px; color: white; font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; box-sizing: border-box; }
+        input:focus { border-color: var(--neon-blue); outline: none; box-shadow: 0 0 20px rgba(0,210,255,0.4); }
+        .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-check { background: var(--neon-blue); color: #000; }
+        .btn-confirm { background: var(--neon-green); color: #000; display: none; margin-top: 20px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(57, 255, 20, 0); } 100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); } }
+        #msg { margin-top: 20px; font-weight: bold; display: none; }
+        .success { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="mainCard">
+        <div class="logo-icon"><i class="fas fa-futbol"></i></div>
+        <h1 id="ui-titulli">NGARKIMI...</h1>
+        <div class="info-box" id="ui-info">Duke marrë të dhënat...</div>
+
+        <div id="inputGroup">
+            <input type="number" id="userId" placeholder="ID JUAJ">
+            <button class="btn btn-check" onclick="verifiko()">KONTROLLO</button>
+        </div>
+        
+        <div id="msg"></div>
+        <button id="confBtn" class="btn btn-confirm" onclick="finalizo()">KONFIRMO PJESËMARRJEN</button>
+    </div>
+
+    <div class="card success" id="successCard">
+        <div class="logo-icon" style="color: var(--neon-green)"><i class="fas fa-check-circle"></i></div>
+        <h1>U REGJISTRUA!</h1>
+        <p id="p-emri" style="font-size: 20px; font-weight: bold;"></p>
+        <p style="color: #888;">Shihemi në fushë!</p>
+    </div>
+
+<script>
+    // KONFIGURIMI I FIREBASE (NGJITE TËNDIN KËTU)
+    const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let lojtariAktual = null;
+    let settings = {};
+
+    // Lexo Settings Live nga Admin Paneli
+    db.collection("config").doc("main").onSnapshot(doc => {
+        if(doc.exists) {
+            settings = doc.data();
+            document.getElementById('ui-titulli').innerText = settings.titulli || "GSE ARENA";
+            document.getElementById('ui-info').innerHTML = `<i class="far fa-calendar-alt"></i> ${settings.data} | <i class="far fa-clock"></i> ${settings.ora}<br><i class="fas fa-map-marker-alt"></i> ${settings.vendi}`;
+        }
+    });
+
+    async function verifiko() {
+        const id = document.getElementById('userId').value;
+        const msg = document.getElementById('msg');
+        const btn = document.getElementById('confBtn');
+        
+        const doc = await db.collection("config").doc("staff").get();
+        if(!doc.exists) return;
+        
+        const lojtaret = doc.data().lojtaret;
+        const lojtari = lojtaret.find(p => p.id === id);
+
+        msg.style.display = "block";
+
+        if(!lojtari) {
+            msg.style.color = "#ff3131";
+            msg.innerHTML = "❌ ID nuk u gjet!";
+            return;
+        }
+
+        lojtariAktual = lojtari;
+        // Merr diten e muajit nga data e caktuar ne admin (psh "26 Mars" -> 26)
+        const dita = parseInt(settings.data); 
+        const shift = lojtari.s[dita - 1];
+
+        if(shift.includes("16")) {
+            msg.style.color = "#ff3131";
+            msg.innerHTML = `Përshëndetje ${lojtari.n}, je në punë (16-00)! ✈️`;
+            btn.style.display = "none";
+        } else {
+            msg.style.color = "#39ff14";
+            msg.innerHTML = `Përshëndetje ${lojtari.n}, je i LIRË! ✅`;
+            btn.style.display = "block";
+            document.getElementById('inputGroup').style.display = "none";
+        }
+    }
+
+    function finalizo() {
+        db.collection("terminet").doc(lojtariAktual.n).set({
+            emri: lojtariAktual.n,
+            koha: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            document.getElementById('mainCard').style.display = "none";
+            document.getElementById('successCard').style.display = "block";
+            document.getElementById('p-emri').innerText = lojtariAktual.n;
+        });
+    }
+</script>
+</body>
+</html>
