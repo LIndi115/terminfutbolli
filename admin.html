@@ -3,100 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GSE Admin - AI Scanner 2026</title>
+    <title>GSE Admin - LKIA Control 2026</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        body { background: #0f111a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .admin-box { max-width: 650px; margin: auto; background: #1a1d29; padding: 30px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: #00d2ff; text-transform: uppercase; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; gap: 10px; }
-        label { display: block; margin-top: 15px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus { border-color: #00d2ff; }
-        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
-        .btn-primary { background: #00d2ff; color: black; }
-        .btn-add { background: #39ff14; color: black; }
-        .btn-reset { background: #ff3131; color: white; }
-        .btn-orange { background: #ff9f43; color: black; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-danger-small { background: #ff3131; color: white; padding: 8px 15px; font-size: 10px; margin-top: 10px; width: auto; display: inline-block; border-radius: 5px; border: none; cursor: pointer; }
+        :root { --blue: #00d2ff; --green: #39ff14; --dark: #0f111a; --card: #1a1d29; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; padding: 15px; margin: 0; }
+        .admin-box { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #333; margin-bottom: 25px; }
+        h2 { color: var(--blue); border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
         
-        #uploadStatus { margin-top: 15px; font-size: 13px; color: #39ff14; font-weight: bold; display: none; background: rgba(0,210,255,0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,210,255,0.2); }
-        .progress-bar { height: 4px; background: #333; width: 100%; margin-top: 10px; border-radius: 2px; overflow: hidden; }
-        #progressFill { height: 100%; background: #00d2ff; width: 0%; transition: 0.2s; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; outline: none; box-sizing: border-box; }
+        
+        .table-container { overflow-x: auto; border-radius: 10px; border: 1px solid #222; margin-top: 15px; position: relative; }
+        table { width: 100%; border-collapse: collapse; min-width: 1500px; table-layout: fixed; }
+        
+        th, td { border: 1px solid #333; padding: 0; text-align: center; height: 35px; overflow: hidden; }
+        
+        .day-col { width: 38px; } 
+        .name-cell { width: 180px; text-align: left; background: #111; position: sticky; left: 0; border-right: 2px solid var(--blue); z-index: 10; padding-left: 5px; }
+        .id-cell { width: 85px; background: #0a0a0a; }
 
-        .player-list { margin-top: 20px; border-top: 1px dashed #444; padding-top: 10px; }
-        .player-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 12px; margin-top: 5px; border-radius: 8px; font-size: 14px; border-left: 3px solid #00d2ff; }
-        .delete-icon { color: #ff3131; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .delete-icon:hover { transform: scale(1.2); }
+        .head-edit, .num-edit, .day-input { 
+            width: 100%; height: 100%; border: none; text-align: center; 
+            font-family: 'Arial Narrow', sans-serif; padding: 0; margin: 0; display: block; outline: none;
+        }
+
+        .head-edit { background: #111; color: #888; font-size: 11px; text-transform: uppercase; }
+        .num-edit { background: var(--blue); color: black; font-weight: bold; font-size: 12px; }
+        .day-input { background: transparent; color: white; font-weight: bold; font-size: 11px; }
+        .day-input:focus { background: #222; color: var(--green); }
+
+        .btn { padding: 14px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        .btn-update { background: var(--blue); color: black; width: 100%; }
+        .btn-add { background: #8e44ad; color: white; margin-bottom: 15px; }
+        .btn-save { background: var(--green); color: black; width: 100%; font-size: 15px; margin-top: 20px; letter-spacing: 0.5px; }
+        .btn:hover { filter: brightness(1.2); }
     </style>
 </head>
 <body>
 
 <div class="admin-box">
     <h2><i class="fas fa-edit"></i> 1. Detajet e Terminit</h2>
-    <label>Titulli</label><input type="text" id="titulli">
-    <label>Dita e Javës</label><input type="text" id="dita_javes">
-    <label>Vendi</label><input type="text" id="vendi">
-    <div style="display: flex; gap: 10px;">
-        <div style="flex:1;"><label>Data</label><input type="text" id="data"></div>
-        <div style="flex:1;"><label>Ora</label><input type="text" id="ora"></div>
+    <div class="grid-inputs">
+        <div><label>Ndeshja</label><input type="text" id="titulli"></div>
+        <div><label>Stadiumi</label><input type="text" id="vendi"></div>
+        <div><label>Data (DD.MM)</label><input type="text" id="data_terminit"></div>
+        <div><label>Ora</label><input type="text" id="ora"></div>
     </div>
-    <button class="btn btn-primary" onclick="ruajDetajet()">Përditëso Faqen</button>
+    <button class="btn btn-update" onclick="ruajDetajet()">PËRDITËSO TERMININ & STRUKTURËN</button>
 </div>
 
 <div class="admin-box">
-    <h2><i class="fas fa-robot"></i> 2. AI Scanner - Orari Mujor</h2>
-    <label>Zgjidh Muajin</label>
-    <select id="muaji_select">
-        <option value="Janar">Janar</option>
-        <option value="Shkurt">Shkurt</option>
-        <option value="Mars">Mars</option>
-        <option value="Prill">Prill</option>
-        <option value="Maj">Maj</option>
-        <option value="Qershor">Qershor</option>
-        <option value="Korrik">Korrik</option>
-        <option value="Gusht">Gusht</option>
-        <option value="Shtator">Shtator</option>
-        <option value="Tetor">Tetor</option>
-        <option value="Nëntor">Nëntor</option>
-        <option value="Dhjetor">Dhjetor</option>
-    </select>
+    <h2><i class="fas fa-table"></i> 2. Orari (OFF, 8, 16, 00/08)</h2>
+    <button class="btn btn-add" onclick="shtoRreshtTeRi()">+ SHTO LOJTAR</button>
     
-    <button class="btn btn-danger-small" onclick="fshijOrarinMujor()"><i class="fas fa-trash"></i> FSHIJ FOTON E MUAJIT</button>
-
-    <label style="margin-top:20px;">Ngarko foton e re (Orari LKIA)</label>
-    <input type="file" id="fileInput" accept="image/*" style="padding: 10px; background: #111;">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr id="rowDays">
+                    <th class="name-cell">Dita:</th>
+                    <th class="id-cell">-</th>
+                </tr>
+                <tr id="rowNumbers">
+                    <th class="name-cell">Data:</th>
+                    <th class="id-cell" style="background:var(--blue); color:black;">ID</th>
+                </tr>
+            </thead>
+            <tbody id="playerRows"></tbody>
+        </table>
+    </div>
     
-    <div id="uploadStatus">
-        <span id="statusText">Duke u bërë gati...</span>
-        <div class="progress-bar"><div id="progressFill"></div></div>
-    </div>
-
-    <button class="btn btn-orange" id="uploadBtn" onclick="analizoDheNgarko()">SKANO DHE PËRDITËSO</button>
-</div>
-
-<div class="admin-box">
-    <h2><i class="fas fa-users-cog"></i> 3. Menaxho Lojtarët</h2>
-    <div style="display: flex; gap: 10px; align-items: flex-end;">
-        <div style="flex:2;"><label>Emri Mbiemri (Si në orar)</label><input type="text" id="newPlayerName"></div>
-        <div style="flex:1;"><label>ID (Tel)</label><input type="text" id="newPlayerId"></div>
-    </div>
-    <button class="btn btn-add" onclick="shtoLojtarin()">Regjistro Lojtar të Ri</button>
-    <div class="player-list" id="listaLojtareve"></div>
-</div>
-
-<div class="admin-box">
-    <h2><i class="fas fa-trash-alt"></i> 4. Mirëmbajtja</h2>
-    <button class="btn btn-reset" onclick="resetTotal()">RESET TOTAL (Termini & Konfirmimet)</button>
+    <button class="btn btn-save" onclick="ruajGjithcka()">PËRDITËSO SISTEMIN ME TË DHËNA ✅</button>
 </div>
 
 <script>
-    // Konfigurimi i Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBh_7BwfNbKbscPSW1ZN9Y_UvAntsjl9Wg",
         authDomain: "herolind-6ca5f.firebaseapp.com",
@@ -107,169 +89,89 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    window.onload = () => { ngarkoLojtaret(); ngarkoShenimetAktuale(); };
+    window.onload = () => {
+        krijoStrukturën();
+        ngarkoTeDhenat();
+    };
 
-    async function ngarkoShenimetAktuale() {
-        const doc = await db.collection("config").doc("main").get();
-        if(doc.exists) {
-            const d = doc.data();
+    function krijoStrukturën() {
+        const rowDays = document.getElementById('rowDays');
+        const rowNumbers = document.getElementById('rowNumbers');
+        for (let i = 1; i <= 31; i++) {
+            let thDay = document.createElement('th'); thDay.className = "day-col";
+            thDay.innerHTML = `<input type="text" class="head-edit day-name" value="-" maxlength="3">`;
+            rowDays.appendChild(thDay);
+            let thNum = document.createElement('th'); thNum.className = "day-col";
+            thNum.innerHTML = `<input type="text" class="num-edit day-num" value="${i}" maxlength="2">`;
+            rowNumbers.appendChild(thNum);
+        }
+        rowDays.innerHTML += '<th style="width:45px"></th>';
+        rowNumbers.innerHTML += '<th style="width:45px; background:red; color:white;"><i class="fas fa-trash-alt"></i></th>';
+    }
+
+    async function ngarkoTeDhenat() {
+        const main = await db.collection("config").doc("main").get();
+        if(main.exists) {
+            const d = main.data();
             document.getElementById('titulli').value = d.titulli || "";
-            document.getElementById('dita_javes').value = d.dita || "";
             document.getElementById('vendi').value = d.vendi || "";
-            document.getElementById('data').value = d.data || "";
+            document.getElementById('data_terminit').value = d.data || "";
             document.getElementById('ora').value = d.ora || "";
+            if(d.headerDays) {
+                const daysInp = document.querySelectorAll('.day-name');
+                d.headerDays.forEach((val, idx) => { if(daysInp[idx]) daysInp[idx].value = val; });
+            }
+            if(d.headerNums) {
+                const numsInp = document.querySelectorAll('.day-num');
+                d.headerNums.forEach((val, idx) => { if(numsInp[idx]) numsInp[idx].value = val; });
+            }
         }
+        const staff = await db.collection("config").doc("staff").get();
+        if(staff.exists) staff.data().lojtaret.forEach(p => krijoRresht(p));
     }
 
-    function ruajDetajet() {
-        db.collection("config").doc("main").set({
+    function krijoRresht(p = {}) {
+        const tr = document.createElement('tr');
+        tr.className = "player-row";
+        let html = `
+            <td class="name-cell"><input type="text" class="inp-n" value="${p.n || ''}" style="background:transparent;border:none;color:white;width:100%;height:100%;font-size:12px"></td>
+            <td class="id-cell"><input type="text" class="inp-id" value="${p.id || ''}" style="background:transparent;border:none;color:#00d2ff;width:100%;text-align:center;font-size:11px"></td>
+        `;
+        for (let d = 0; d < 31; d++) {
+            let val = (p.s && p.s[d]) ? p.s[d] : "OFF";
+            html += `<td class="day-col"><input type="text" class="day-input" value="${val}"></td>`;
+        }
+        html += `<td><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:red;cursor:pointer;width:100%"><i class="fas fa-times"></i></button></td>`;
+        tr.innerHTML = html;
+        document.getElementById('playerRows').appendChild(tr);
+    }
+
+    function shtoRreshtTeRi() { krijoRresht({ s: Array(31).fill("OFF") }); }
+
+    async function ruajDetajet() {
+        let hDays = []; let hNums = [];
+        document.querySelectorAll('.day-name').forEach(el => hDays.push(el.value));
+        document.querySelectorAll('.day-num').forEach(el => hNums.push(el.value));
+        await db.collection("config").doc("main").set({
             titulli: document.getElementById('titulli').value,
-            dita: document.getElementById('dita_javes').value,
             vendi: document.getElementById('vendi').value,
-            data: document.getElementById('data').value,
-            ora: document.getElementById('ora').value
-        }, {merge: true}).then(() => alert("U përditësua me sukses!")).catch(e => alert(e.message));
+            data: document.getElementById('data_terminit').value,
+            ora: document.getElementById('ora').value,
+            headerDays: hDays, headerNums: hNums
+        }, {merge: true});
+        alert("✅ Struktura dhe termini u përditësuan!");
     }
 
-    async function analizoDheNgarko() {
-        const file = document.getElementById('fileInput').files[0];
-        const muaji = document.getElementById('muaji_select').value;
-        const statusDiv = document.getElementById('uploadStatus');
-        const statusText = document.getElementById('statusText');
-        const progressFill = document.getElementById('progressFill');
-        const btn = document.getElementById('uploadBtn');
-
-        if (!file) return alert("Ju lutem zgjidhni një foto!");
-
-        statusDiv.style.display = "block";
-        btn.disabled = true;
-
-        try {
-            statusText.innerText = "Duke nisur AI... ⏳";
-            
-            // Krijojmë Worker-in për stabilitet maksimal
-            const worker = await Tesseract.createWorker({
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        let p = Math.round(m.progress * 100);
-                        statusText.innerText = `Duke lexuar tekstin: ${p}%`;
-                        progressFill.style.width = p + "%";
-                    }
-                }
-            });
-
-            await worker.loadLanguage('eng+sqi');
-            await worker.initialize('eng+sqi');
-            const { data: { text } } = await worker.recognize(file);
-            await worker.terminate();
-
-            const docRef = db.collection("config").doc("staff");
-            const doc = await docRef.get();
-            let lojtaret = doc.exists ? (doc.data().lojtaret || []) : [];
-
-            let updateCount = 0;
-            const rreshtat = text.split('\n');
-
-            // Logjika e krahasimit të emrave
-            lojtaret.forEach(p => {
-                const rreshtiLojtarit = rreshtat.find(r => r.toUpperCase().includes(p.n.toUpperCase()));
-                if (rreshtiLojtarit) {
-                    let orariRi = [];
-                    for(let d=1; d<=31; d++) {
-                        // Kontrollojmë nëse ka ndërrimin "16" në atë rresht
-                        orariRi.push(rreshtiLojtarit.includes("16") ? "16" : "OFF");
-                    }
-                    p.s = orariRi;
-                    updateCount++;
-                }
-            });
-
-            await docRef.set({ lojtaret: lojtaret });
-
-            // Ruajtja e fotos në Firebase Storage
-            const storageRef = storage.ref('oraret/' + muaji + '_' + Date.now());
-            await storageRef.put(file);
-            const url = await storageRef.getDownloadURL();
-            await db.collection("config").doc("orar_mujore").set({ [muaji]: url }, { merge: true });
-
-            alert("Sukses! U lexua fotoja dhe u përditësuan " + updateCount + " lojtarë.");
-        } catch (e) {
-            console.error(e);
-            alert("Gabim gjatë skanimit: " + e.message);
-        } finally {
-            statusDiv.style.display = "none";
-            progressFill.style.width = "0%";
-            btn.disabled = false;
-        }
-    }
-
-    async function ngarkoLojtaret() {
-        const listDiv = document.getElementById('listaLojtareve');
-        const doc = await db.collection("config").doc("staff").get();
-        if(doc.exists) {
-            let lojtaret = doc.data().lojtaret || [];
-            listDiv.innerHTML = '<label>Lojtarët në Sistem ('+lojtaret.length+'):</label>';
-            lojtaret.forEach((p, index) => {
-                listDiv.innerHTML += `
-                    <div class="player-item">
-                        <span><i class="fas fa-user" style="color:#00d2ff; margin-right:10px;"></i> ${p.n}</span>
-                        <i class="fas fa-trash-alt delete-icon" onclick="fshijLojtarin(${index})" title="Fshij Lojtarin"></i>
-                    </div>
-                `;
-            });
-        }
-    }
-
-    async function shtoLojtarin() {
-        const emri = document.getElementById('newPlayerName').value.trim();
-        const idVal = document.getElementById('newPlayerId').value.trim();
-        if(!emri || !idVal) return alert("Plotëso emrin dhe ID!");
-
-        const docRef = db.collection("config").doc("staff");
-        const doc = await docRef.get();
-        let lojtaret = doc.exists ? (doc.data().lojtaret || []) : [];
-        lojtaret.push({ id: idVal, n: emri, s: Array(31).fill("OFF") });
-        await docRef.set({ lojtaret: lojtaret });
-        document.getElementById('newPlayerName').value = "";
-        document.getElementById('newPlayerId').value = "";
-        ngarkoLojtaret();
-    }
-
-    async function fshijLojtarin(index) {
-        if(confirm("A je i sigurt që dëshiron ta fshish këtë lojtar?")) {
-            const docRef = db.collection("config").doc("staff");
-            const doc = await docRef.get();
-            let lojtaret = doc.data().lojtaret;
-            lojtaret.splice(index, 1);
-            await docRef.set({ lojtaret: lojtaret });
-            ngarkoLojtaret();
-        }
-    }
-
-    async function resetTotal() {
-        if(confirm("Kujdes: Kjo fshin detajet e terminit dhe të gjitha konfirmimet!")) {
-            await db.collection("config").doc("main").set({
-                titulli: "TERMIN I RI", dita: "", vendi: "", data: "", ora: ""
-            });
-            const snap = await db.collection("terminet").get();
-            const batch = db.batch();
-            snap.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            alert("Sistemi u resetua!");
-            location.reload();
-        }
-    }
-
-    async function fshijOrarinMujor() {
-        const muaji = document.getElementById('muaji_select').value;
-        if(confirm("Fshij foton e orarit për muajin " + muaji + "?")) {
-            await db.collection("config").doc("orar_mujore").update({
-                [muaji]: firebase.firestore.FieldValue.delete()
-            });
-            alert("U fshi!");
-        }
+    async function ruajGjithcka() {
+        let lojtaret = [];
+        document.querySelectorAll('.player-row').forEach(r => {
+            let orari = [];
+            r.querySelectorAll('.day-input').forEach(d => orari.push(d.value.toUpperCase()));
+            lojtaret.push({ n: r.querySelector('.inp-n').value, id: r.querySelector('.inp-id').value, s: orari });
+        });
+        await db.collection("config").doc("staff").set({ lojtaret });
+        alert("🚀 Të dhënat u sinkronizuan me sukses!");
     }
 </script>
 </body>
