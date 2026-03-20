@@ -2,47 +2,87 @@
 <html lang="sq">
 <head>
     <meta charset="UTF-8">
-    <title>GSE Admin - Kontrolli</title>
+    <title>GSE Admin - AI Scanner v4.1</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         body { background: #0f111a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .admin-box { max-width: 600px; margin: auto; background: #1a1d29; padding: 30px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
+        .admin-box { max-width: 650px; margin: auto; background: #1a1d29; padding: 30px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
         h2 { color: #00d2ff; text-transform: uppercase; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
-        label { display: block; margin-top: 15px; font-size: 12px; color: #888; text-transform: uppercase; }
+        label { display: block; margin-top: 15px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
         input, select { width: 100%; padding: 12px; margin-top: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
         .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
         .btn-primary { background: #00d2ff; color: black; }
         .btn-add { background: #39ff14; color: black; }
         .btn-reset { background: #ff3131; color: white; }
+        .btn-orange { background: #ff9f43; color: black; }
+        .btn-danger-small { background: #ff3131; color: white; padding: 8px; font-size: 10px; margin-top: 10px; width: auto; display: inline-block; }
+        
+        #uploadStatus { margin-top: 10px; font-size: 13px; color: #39ff14; font-weight: bold; display: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+        .player-list { margin-top: 20px; border-top: 1px dashed #444; padding-top: 10px; }
+        .player-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 12px; margin-top: 5px; border-radius: 8px; font-size: 14px; border-left: 3px solid #00d2ff; }
+        .delete-icon { color: #ff3131; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .delete-icon:hover { transform: scale(1.2); }
     </style>
 </head>
 <body>
 
 <div class="admin-box">
     <h2><i class="fas fa-edit"></i> 1. Detajet e Terminit</h2>
-    <label>Titulli</label><input type="text" id="titulli" placeholder="Psh: Termin Futbolli">
-    <label>Vendi</label><input type="text" id="vendi" placeholder="Psh: Fusha Drenas">
+    <label>Titulli</label><input type="text" id="titulli">
+    <label>Dita e Javës</label><input type="text" id="dita_javes">
+    <label>Vendi</label><input type="text" id="vendi">
     <div style="display: flex; gap: 10px;">
-        <div style="flex:1;"><label>Data</label><input type="text" id="data" placeholder="Psh: 26 Mars"></div>
-        <div style="flex:1;"><label>Ora</label><input type="text" id="ora" placeholder="Psh: 20:00"></div>
+        <div style="flex:1;"><label>Data</label><input type="text" id="data"></div>
+        <div style="flex:1;"><label>Ora</label><input type="text" id="ora"></div>
     </div>
     <button class="btn btn-primary" onclick="ruajDetajet()">Përditëso Faqen</button>
 </div>
 
 <div class="admin-box">
-    <h2><i class="fas fa-user-plus"></i> 2. Regjistro Lojtar</h2>
-    <div style="display: flex; gap: 10px;">
-        <div style="flex:2;"><label>Emri</label><input type="text" id="newPlayerName" placeholder="Emri Mbiemri"></div>
-        <div style="flex:1;"><label>ID</label><input type="text" id="newPlayerId" placeholder="ID"></div>
-    </div>
-    <button class="btn btn-add" onclick="shtoLojtarin()">Shto në Sistem</button>
+    <h2><i class="fas fa-robot"></i> 2. AI Scanner - Orari Mujor</h2>
+    <label>Zgjidh Muajin</label>
+    <select id="muaji_select">
+        <option value="Janar">Janar</option>
+        <option value="Shkurt">Shkurt</option>
+        <option value="Mars">Mars</option>
+        <option value="Prill">Prill</option>
+        <option value="Maj">Maj</option>
+        <option value="Qershor">Qershor</option>
+        <option value="Korrik">Korrik</option>
+        <option value="Gusht">Gusht</option>
+        <option value="Shtator">Shtator</option>
+        <option value="Tetor">Tetor</option>
+        <option value="Nëntor">Nëntor</option>
+        <option value="Dhjetor">Dhjetor</option>
+    </select>
+    
+    <label>Opsionet e Muajit</label>
+    <button class="btn btn-danger-small" onclick="fshijOrarinMujor()"><i class="fas fa-trash"></i> FSHIJ ORARIN E KËTIJ MUAJI</button>
+
+    <label style="margin-top:20px;">Ngarko foton e re</label>
+    <input type="file" id="fileInput" accept="image/*" style="padding: 10px; background: #111;">
+    <div id="uploadStatus"></div>
+    <button class="btn btn-orange" id="uploadBtn" onclick="analizoDheNgarko()">SKANO DHE PËRDITËSO</button>
 </div>
 
 <div class="admin-box">
-    <h2><i class="fas fa-sync"></i> 3. Opsionet</h2>
-    <button class="btn btn-reset" onclick="resetLista()">Fshij Konfirmimet (Reset Javor)</button>
+    <h2><i class="fas fa-users-cog"></i> 3. Menaxho Lojtarët</h2>
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
+        <div style="flex:2;"><label>Emri Mbiemri (Si në orar)</label><input type="text" id="newPlayerName"></div>
+        <div style="flex:1;"><label>ID (Tel)</label><input type="text" id="newPlayerId"></div>
+    </div>
+    <button class="btn btn-add" onclick="shtoLojtarin()">Regjistro Lojtar të Ri</button>
+    <div class="player-list" id="listaLojtareve"></div>
+</div>
+
+<div class="admin-box">
+    <h2><i class="fas fa-trash-alt"></i> 4. Mirëmbajtja</h2>
+    <button class="btn btn-reset" onclick="resetTotal()">RESET TOTAL (Termini & Konfirmimet)</button>
 </div>
 
 <script>
@@ -56,38 +96,133 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    window.onload = () => { ngarkoLojtaret(); };
 
     function ruajDetajet() {
         db.collection("config").doc("main").set({
             titulli: document.getElementById('titulli').value,
+            dita: document.getElementById('dita_javes').value,
             vendi: document.getElementById('vendi').value,
             data: document.getElementById('data').value,
             ora: document.getElementById('ora').value
-        }).then(() => alert("U ruajtën!")).catch(e => alert("Gabim: " + e.message));
+        }, {merge: true}).then(() => alert("U përditësua!")).catch(e => alert(e.message));
+    }
+
+    async function fshijOrarinMujor() {
+        const muaji = document.getElementById('muaji_select').value;
+        if(confirm("A je i sigurt që dëshiron të fshish foton e orarit për muajin " + muaji + "?")) {
+            await db.collection("config").doc("orar_mujore").update({
+                [muaji]: firebase.firestore.FieldValue.delete()
+            });
+            alert("Orari i muajit " + muaji + " u fshi!");
+        }
+    }
+
+    async function analizoDheNgarko() {
+        const file = document.getElementById('fileInput').files[0];
+        const muaji = document.getElementById('muaji_select').value;
+        const status = document.getElementById('uploadStatus');
+        const btn = document.getElementById('uploadBtn');
+
+        if (!file) return alert("Zgjidh një foto!");
+
+        status.style.display = "block";
+        status.innerText = "Duke lexuar tekstin me AI... ⏳";
+        btn.disabled = true;
+
+        try {
+            const { data: { text } } = await Tesseract.recognize(file, 'eng+sqi');
+            const docRef = db.collection("config").doc("staff");
+            const doc = await docRef.get();
+            let lojtaret = doc.exists ? doc.data().lojtaret : [];
+
+            let updateCount = 0;
+            const rreshtat = text.split('\n');
+
+            lojtaret.forEach(p => {
+                const rreshtiLojtarit = rreshtat.find(r => r.toUpperCase().includes(p.n.toUpperCase()));
+                if (rreshtiLojtarit) {
+                    let orariRi = [];
+                    for(let d=1; d<=31; d++) {
+                        orariRi.push(rreshtiLojtarit.includes("16") ? "16" : "OFF");
+                    }
+                    p.s = orariRi;
+                    updateCount++;
+                }
+            });
+
+            await docRef.set({ lojtaret: lojtaret });
+
+            const storageRef = storage.ref('oraret/' + muaji + '_' + Date.now());
+            await storageRef.put(file);
+            const url = await storageRef.getDownloadURL();
+            await db.collection("config").doc("orar_mujore").set({ [muaji]: url }, { merge: true });
+
+            alert("Sukses! U përditësuan " + updateCount + " lojtarë.");
+        } catch (e) {
+            alert("Gabim: " + e.message);
+        } finally {
+            status.style.display = "none";
+            btn.disabled = false;
+        }
+    }
+
+    async function ngarkoLojtaret() {
+        const listDiv = document.getElementById('listaLojtareve');
+        const doc = await db.collection("config").doc("staff").get();
+        if(doc.exists) {
+            let lojtaret = doc.data().lojtaret || [];
+            listDiv.innerHTML = '<label>Lojtarët në Sistem ('+lojtaret.length+'):</label>';
+            lojtaret.forEach((p, index) => {
+                listDiv.innerHTML += `
+                    <div class="player-item">
+                        <span><i class="fas fa-user" style="color:#00d2ff; margin-right:10px;"></i> ${p.n}</span>
+                        <i class="fas fa-trash-alt delete-icon" onclick="fshijLojtarin(${index})" title="Fshij Lojtarin"></i>
+                    </div>
+                `;
+            });
+        }
     }
 
     async function shtoLojtarin() {
         const emri = document.getElementById('newPlayerName').value.trim();
         const idVal = document.getElementById('newPlayerId').value.trim();
-        if(!emri || !idVal) { alert("Plotësoji të gjitha!"); return; }
+        if(!emri || !idVal) return alert("Plotëso emrin dhe ID!");
 
         const docRef = db.collection("config").doc("staff");
-        try {
-            const doc = await docRef.get();
-            let lojtaret = doc.exists ? (doc.data().lojtaret || []) : [];
-            lojtaret.push({ id: idVal, n: emri, s: Array(31).fill("OFF") });
-            await docRef.set({ lojtaret: lojtaret });
-            alert("U shtua!");
-        } catch(e) { alert("Gabim: " + e.message); }
+        const doc = await docRef.get();
+        let lojtaret = doc.exists ? (doc.data().lojtaret || []) : [];
+        lojtaret.push({ id: idVal, n: emri, s: Array(31).fill("OFF") });
+        await docRef.set({ lojtaret: lojtaret });
+        document.getElementById('newPlayerName').value = "";
+        document.getElementById('newPlayerId').value = "";
+        ngarkoLojtaret();
     }
 
-    function resetLista() {
-        if(confirm("A dëshiron t'i fshish konfirmimet?")) {
-            db.collection("terminet").get().then(snap => {
-                const batch = db.batch();
-                snap.forEach(doc => batch.delete(doc.ref));
-                batch.commit().then(() => alert("Lista u pastrua!"));
+    async function fshijLojtarin(index) {
+        if(confirm("A je i sigurt që dëshiron ta fshish këtë lojtar nga sistemi?")) {
+            const docRef = db.collection("config").doc("staff");
+            const doc = await docRef.get();
+            let lojtaret = doc.data().lojtaret;
+            lojtaret.splice(index, 1);
+            await docRef.set({ lojtaret: lojtaret });
+            ngarkoLojtaret();
+        }
+    }
+
+    async function resetTotal() {
+        if(confirm("Kujdes: Kjo fshin terminin dhe konfirmimet!")) {
+            await db.collection("config").doc("main").set({
+                titulli: "TERMIN I RI", dita: "", vendi: "", data: "", ora: ""
             });
+            const snap = await db.collection("terminet").get();
+            const batch = db.batch();
+            snap.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            alert("Sistemi u resetua!");
+            location.reload();
         }
     }
 </script>
