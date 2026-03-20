@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINI FUTBOLL 2026</title>
+    <title>TERMINI FUTBOLL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
@@ -80,15 +80,9 @@
             border: 2px solid rgba(255,255,255,0.1);
         }
 
+        /* Footer info eshte bere hidden (e fshehur) */
         .footer-info {
-            position: absolute; bottom: 40px; width: 100%;
-            display: flex; flex-direction: column; align-items: center;
-            font-size: 16px; letter-spacing: 3px; font-weight: 700;
-        }
-
-        .info-tag {
-            background: rgba(255,255,255,0.1); padding: 5px 15px;
-            margin: 5px; border-radius: 4px;
+            display: none;
         }
     </style>
 </head>
@@ -111,14 +105,6 @@
                 <button class="btn-sport" style="margin-top: 15px; font-size: 14px; background: #222; color: white;" onclick="location.reload()">KTHEHU</button>
             </div>
         </div>
-
-        <div class="footer-info">
-            <div id="ui-vendi" style="color: var(--neon-lime); margin-bottom: 10px; font-size: 20px;">LOKACIONI...</div>
-            <div>
-                <span class="info-tag" id="ui-data">DATA: --/--</span>
-                <span class="info-tag" id="ui-ora">ORA: --:--</span>
-            </div>
-        </div>
     </div>
 
 <script>
@@ -136,13 +122,14 @@
     let player = null;
     let settings = {};
 
+    // Marrim vetem titullin, tjerat i bllokojme
     db.collection("config").doc("main").onSnapshot(doc => {
         if(doc.exists) {
             settings = doc.data();
-            document.getElementById('ui-titulli').innerHTML = settings.titulli.replace(" ", "<br>");
-            document.getElementById('ui-vendi').innerText = settings.vendi;
-            document.getElementById('ui-data').innerText = "DATA: " + settings.data;
-            document.getElementById('ui-ora').innerText = "ORA: " + settings.ora;
+            // Nese ka titull te ri ne Firebase e merr, perndryshe mbetet "TERMINI FUTBOLL"
+            if(settings.titulli) {
+                document.getElementById('ui-titulli').innerHTML = settings.titulli.replace(" ", "<br>");
+            }
         }
     });
 
@@ -168,7 +155,8 @@
         }
 
         player = found;
-        const dita = parseInt(settings.data) || 1;
+        // Supozojme diten e pare nese nuk ka date ne Firebase
+        const dita = parseInt(settings.data) || 1; 
         const shift = player.s[dita-1] || "OFF";
 
         if(shift.includes("16")) {
