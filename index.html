@@ -3,35 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LKIA Football Match</title>
+    <title>LKIA Match Center</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --blue: #00d2ff; --green: #39ff14; --dark: #0f111a; --card: #1a1d29; }
+        :root { --blue: #00d2ff; --green: #39ff14; --red: #ff4d4d; --dark: #0f111a; --card: #1a1d29; }
         body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; }
-        
         .card { background: var(--card); width: 100%; max-width: 400px; padding: 30px; border-radius: 25px; border: 1px solid #333; box-shadow: 0 15px 35px rgba(0,0,0,0.6); text-align: center; }
-        
-        /* Hapat e aplikacionit */
         #step-check, #step-confirm, #step-list { display: none; }
-        #step-check { display: block; } /* Hapi i pare aktiv */
-
+        #step-check { display: block; }
         .logo-icon { font-size: 50px; color: var(--blue); margin-bottom: 20px; }
-        h2 { margin-bottom: 10px; font-size: 22px; }
-        p { color: #888; font-size: 14px; margin-bottom: 25px; }
-
-        input { width: 100%; padding: 18px; background: #000; border: 2px solid #333; color: white; border-radius: 12px; font-size: 20px; text-align: center; outline: none; transition: 0.3s; box-sizing: border-box; }
-        input:focus { border-color: var(--blue); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
-
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 20px; transition: 0.3s; font-size: 14px; }
+        input { width: 100%; padding: 18px; background: #000; border: 2px solid #333; color: white; border-radius: 12px; font-size: 20px; text-align: center; box-sizing: border-box; outline: none; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; transition: 0.3s; }
         .btn-blue { background: var(--blue); color: black; }
         .btn-green { background: var(--green); color: black; }
-        .btn:active { transform: scale(0.96); }
-
+        .btn-red { background: var(--red); color: white; }
         .info-box { background: rgba(0, 210, 255, 0.05); border: 1px solid var(--blue); padding: 15px; border-radius: 15px; margin: 20px 0; }
-        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 10px; }
-
+        .status-badge { display: inline-block; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
         .p-item { background: #111; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--green); text-align: left; }
     </style>
 </head>
@@ -39,26 +28,28 @@
 
 <div class="card">
     <div id="step-check">
-        <div class="logo-icon"><i class="fas fa-user-shield"></i></div>
+        <div class="logo-icon"><i class="fas fa-plane-departure"></i></div>
         <h2>LKIA Match Center</h2>
-        <p>Shëno ID-në tënde për të vazhduar</p>
-        <input type="text" id="pID" placeholder="Shkruaj ID këtu..." inputmode="numeric">
-        <button class="btn btn-blue" onclick="kontrolloID()">IDENTIFIKOHU <i class="fas fa-arrow-right"></i></button>
+        <p style="color:#888">Shëno ID-në tënde</p>
+        <input type="text" id="pID" placeholder="ID..." inputmode="numeric">
+        <button class="btn btn-blue" onclick="kontrolloID()">Hyr në Sistem <i class="fas fa-sign-in-alt"></i></button>
     </div>
 
     <div id="step-confirm">
         <h2 id="userName" style="color:var(--blue)">...</h2>
-        <div class="info-box" id="matchData">Duke ngarkuar...</div>
+        <div class="info-box" id="matchData">...</div>
         <div id="statusResult"></div>
-        <button id="btnConfirmAction" class="btn btn-green" onclick="konfirmoPjesemarrjen()">KONFIRMO PJESËMARRJEN ✅</button>
-        <button class="btn" style="background:transparent; color:#555;" onclick="location.reload()">Anulo</button>
+        <p style="margin-bottom:5px; font-size:12px;">A vjen në këtë termin?</p>
+        <button class="btn btn-green" onclick="ekzekutoKonfirmimin(true)">PO, VIJ ✅</button>
+        <button class="btn btn-red" onclick="ekzekutoKonfirmimin(false)">JO, NUK MUNDEM ❌</button>
     </div>
 
     <div id="step-list">
-        <h3 style="color:var(--green)"><i class="fas fa-check-circle"></i> U konfirmuat!</h3>
-        <p>Lista e lojtarëve për këtë termin:</p>
-        <div id="finalList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
-        <button class="btn btn-blue" onclick="location.reload()">MBYLL <i class="fas fa-times"></i></button>
+        <h3 id="finalMsg" style="margin-bottom:5px;"></h3>
+        <p id="matchInfoSmall" style="font-size:13px; color:var(--blue); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;"></p>
+        <p style="font-size:12px; color:#888; text-align:left;">Lojtarët që kanë konfirmuar:</p>
+        <div id="finalList" style="max-height: 350px; overflow-y: auto; margin-top:10px;"></div>
+        <button class="btn btn-blue" onclick="location.reload()">DIL <i class="fas fa-times"></i></button>
     </div>
 </div>
 
@@ -74,80 +65,92 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let lojtariAktual = null;
-    let indexDataMatch = -1;
+    let lojtari = null;
+    let matchID = "";
+    let matchDetailsHTML = "";
 
-    // Kontrollo ID-ne
     async function kontrolloID() {
         const id = document.getElementById('pID').value.trim();
         if(!id) return;
 
-        // Merr te dhenat e ndeshjes dhe staffit
         const mainDoc = await db.collection("config").doc("main").get();
         const staffDoc = await db.collection("config").doc("staff").get();
-
-        if(!mainDoc.exists || !staffDoc.exists) return alert("Sistemi nuk eshte gati!");
+        if(!mainDoc.exists || !staffDoc.exists) return alert("Sistemi nuk është gati!");
 
         const d = mainDoc.data();
         const p = staffDoc.data().lojtaret.find(x => x.id === id);
+        if(!p) return alert("ID nuk u gjet!");
 
-        if(!p) return alert("Kjo ID nuk u gjet ne sistem!");
+        lojtari = p;
+        matchID = "match_" + d.data.replace(/\./g, "-");
+        matchDetailsHTML = `<b>${d.titulli}</b><br>${d.data} | Ora: ${d.ora}`;
+        document.getElementById('matchInfoSmall').innerHTML = matchDetailsHTML;
 
-        lojtariAktual = p;
+        // KONTROLLI KRITIK: A eshte lojtari ne listen e kesaj ndeshjeje?
+        const currentMatch = await db.collection("matches").doc(matchID).get();
+        let list = currentMatch.exists ? currentMatch.data().pjesemarresit : [];
+        const konfirmimiEkzistues = list.find(x => x.id === id);
 
-        // Kalkulo diten
-        if(d.data) {
-            indexDataMatch = parseInt(d.data.split('.')[0]) - 1;
-        }
-
-        // Shfaq detajet te Hapi 2
-        document.getElementById('userName').innerText = "Përshëndetje " + p.n;
-        document.getElementById('matchData').innerHTML = `
-            <b style="color:white">${d.titulli}</b><br>
-            <span style="font-size:13px">${d.vendi}</span><br>
-            <span style="color:var(--blue)">${d.data} | Ora: ${d.ora}</span>
-        `;
-
-        const orariPunes = (p.s && p.s[indexDataMatch]) ? p.s[indexDataMatch].toUpperCase() : "OFF";
-        const resultDiv = document.getElementById('statusResult');
-        const btnC = document.getElementById('btnConfirmAction');
-
-        if(orariPunes === "16") {
-            resultDiv.innerHTML = `<div class="status-badge" style="background:rgba(255,0,0,0.2); color:#ff4d4d">JE MASDITE (16:00) - NUK MUND TË VISH ❌</div>`;
-            btnC.style.display = "none";
+        if(konfirmimiEkzistues) {
+            // Nese ka konfirmuar me pare, dergoje direkt te lista
+            document.getElementById('finalMsg').innerHTML = konfirmimiEkzistues.vjen ? 
+                "<span style='color:var(--green)'>Mirëseveprore, " + p.n + "! ✅</span>" : 
+                "<span style='color:var(--red)'>Përshëndetje, " + p.n + "! ❌</span>";
+            shfaqListen(list);
+            document.getElementById('step-check').style.display = "none";
+            document.getElementById('step-list').style.display = "block";
         } else {
-            let tekstOrari = (orariPunes === "OFF") ? "JE PUSHIM" : (orariPunes === "8") ? "JE PARADITE (08:00)" : "JE " + orariPunes;
-            resultDiv.innerHTML = `<div class="status-badge" style="background:rgba(57,255,20,0.2); color:var(--green)">${tekstOrari} - MUND TË VISH ✅</div>`;
-            btnC.style.display = "block";
-        }
+            // Nese eshte hera e pare, shfaq hapi 2 (Konfirmimin)
+            document.getElementById('userName').innerText = p.n;
+            document.getElementById('matchData').innerHTML = matchDetailsHTML;
+            
+            const indexData = parseInt(d.data.split('.')[0]) - 1;
+            const orari = (p.s && p.s[indexData]) ? p.s[indexData].toUpperCase() : "OFF";
+            const resDiv = document.getElementById('statusResult');
 
-        // Kalimi ne Hapin 2
-        document.getElementById('step-check').style.display = "none";
-        document.getElementById('step-confirm').style.display = "block";
+            if(orari === "16") {
+                resDiv.innerHTML = `<div class="status-badge" style="background:rgba(255,0,0,0.2); color:var(--red)">JE MASDITE (16:00) ❌</div>`;
+            } else {
+                let t = (orari === "OFF") ? "JE PUSHIM" : (orari === "8") ? "JE PARADITE (08:00)" : "JE " + orari;
+                resDiv.innerHTML = `<div class="status-badge" style="background:rgba(57,255,20,0.2); color:var(--green)">${t} ✅</div>`;
+            }
+
+            document.getElementById('step-check').style.display = "none";
+            document.getElementById('step-confirm').style.display = "block";
+        }
     }
 
-    // Konfirmo
-    async function konfirmoPjesemarrjen() {
-        const ref = db.collection("matches").doc("current");
+    async function ekzekutoKonfirmimin(vjen) {
+        const ref = db.collection("matches").doc(matchID);
         const doc = await ref.get();
         let list = doc.exists ? doc.data().pjesemarresit : [];
 
-        if(!list.find(x => x.id === lojtariAktual.id)) {
-            list.push({ n: lojtariAktual.n, id: lojtariAktual.id });
-            await ref.set({ pjesemarresit: list });
-        }
-
-        shfaqListenFinale(list);
+        // Sigurohemi qe nuk ka duplikate (per siguri)
+        list = list.filter(x => x.id !== lojtari.id);
+        list.push({ n: lojtari.n, id: lojtari.id, vjen: vjen });
         
-        // Kalimi ne Hapin 3
+        await ref.set({ pjesemarresit: list });
+
+        document.getElementById('finalMsg').innerHTML = vjen ? 
+            "<span style='color:var(--green)'>U konfirmove! ✅</span>" : 
+            "<span style='color:var(--red)'>U njoftua! ❌</span>";
+
+        shfaqListen(list);
         document.getElementById('step-confirm').style.display = "none";
         document.getElementById('step-list').style.display = "block";
     }
 
-    function shfaqListenFinale(lista) {
+    function shfaqListen(lista) {
         const div = document.getElementById('finalList');
         div.innerHTML = "";
-        lista.forEach((p, i) => {
+        const vijne = lista.filter(x => x.vjen === true);
+        
+        if(vijne.length === 0) {
+            div.innerHTML = "<p style='color:#555; text-align:center;'>Asnjë konfirmim deri tani.</p>";
+            return;
+        }
+
+        vijne.forEach((p, i) => {
             div.innerHTML += `<div class="p-item"><span>${i+1}. ${p.n}</span> <i class="fas fa-check-circle" style="color:var(--green)"></i></div>`;
         });
     }
