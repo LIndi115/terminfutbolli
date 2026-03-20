@@ -9,18 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --neon-blue: #00d2ff; --neon-green: #39ff14; --dark-bg: #0a0b10; }
-        body { background-color: var(--dark-bg); background-image: radial-gradient(circle at top right, #1a2a6c, transparent), radial-gradient(circle at bottom left, #b21f1f, transparent); color: white; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        body { background-color: var(--dark-bg); background-image: radial-gradient(circle at top right, #1a2a6c, transparent), radial-gradient(circle at bottom left, #b21f1f, transparent); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 40px 30px; text-align: center; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
         .logo-icon { font-size: 50px; color: var(--neon-blue); margin-bottom: 20px; filter: drop-shadow(0 0 10px var(--neon-blue)); }
-        h1 { font-size: 22px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; color: white; }
-        .info-box { font-size: 14px; color: #ccc; margin-bottom: 30px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; }
-        input { width: 100%; background: rgba(0,0,0,0.5); border: 2px solid #333; border-radius: 15px; padding: 20px; color: white; font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; box-sizing: border-box; }
-        input:focus { border-color: var(--neon-blue); outline: none; }
+        h1 { font-size: 22px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .info-box { font-size: 14px; color: #ccc; margin-bottom: 30px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; border: 1px solid #333; }
+        input { width: 100%; background: rgba(0,0,0,0.5); border: 2px solid #333; border-radius: 15px; padding: 20px; color: white; font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 20px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--neon-blue); }
         .btn { width: 100%; padding: 18px; border-radius: 15px; border: none; font-weight: 900; text-transform: uppercase; cursor: pointer; font-size: 16px; transition: 0.3s; }
         .btn-check { background: var(--neon-blue); color: #000; }
         .btn-confirm { background: var(--neon-green); color: #000; display: none; margin-top: 20px; animation: pulse 2s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.6); } 70% { box-shadow: 0 0 0 15px rgba(57, 255, 20, 0); } 100% { box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); } }
-        #msg { margin-top: 20px; font-weight: bold; display: none; }
+        #msg { margin-top: 20px; font-weight: bold; font-size: 18px; display: none; }
         .success { display: none; }
     </style>
 </head>
@@ -28,11 +28,11 @@
 
     <div class="card" id="mainCard">
         <div class="logo-icon"><i class="fas fa-futbol"></i></div>
-        <h1 id="ui-titulli">NGARKIMI...</h1>
-        <div class="info-box" id="ui-info">Duke marrë të dhënat...</div>
+        <h1 id="ui-titulli">DUKE U NGARKUAR...</h1>
+        <div class="info-box" id="ui-info">Duke marrë të dhënat e terminit...</div>
         <div id="inputGroup">
             <input type="text" id="userId" placeholder="ID JUAJ">
-            <button class="btn btn-check" onclick="verifiko()">KONTROLLO</button>
+            <button class="btn btn-check" onclick="verifiko()">KONTROLLO STATUSIN</button>
         </div>
         <div id="msg"></div>
         <button id="confBtn" class="btn btn-confirm" onclick="finalizo()">KONFIRMO PJESËMARRJEN</button>
@@ -41,12 +41,19 @@
     <div class="card success" id="successCard">
         <div class="logo-icon" style="color: var(--neon-green)"><i class="fas fa-check-circle"></i></div>
         <h1>U REGJISTRUA!</h1>
-        <p id="p-emri" style="font-size: 20px; font-weight: bold;"></p>
+        <p id="p-emri" style="font-size: 20px; font-weight: bold; margin: 10px 0;"></p>
         <p style="color: #888;">Shihemi në fushë!</p>
     </div>
 
 <script>
-    const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBh_7BwfNbKbscPSW1ZN9Y_UvAntsjl9Wg",
+        authDomain: "herolind-6ca5f.firebaseapp.com",
+        projectId: "herolind-6ca5f",
+        storageBucket: "herolind-6ca5f.firebasestorage.app",
+        messagingSenderId: "893085364638",
+        appId: "1:893085364638:web:2db59e6ec72ad7e7c1a68f"
+    };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -57,7 +64,7 @@
         if(doc.exists) {
             settings = doc.data();
             document.getElementById('ui-titulli').innerText = settings.titulli || "GSE ARENA";
-            document.getElementById('ui-info').innerHTML = `<i class="far fa-calendar-alt"></i> ${settings.data} | <i class="far fa-clock"></i> ${settings.ora}<br><i class="fas fa-map-marker-alt"></i> ${settings.vendi}`;
+            document.getElementById('ui-info').innerHTML = `<i class="far fa-calendar-alt"></i> ${settings.data || "Data"} | <i class="far fa-clock"></i> ${settings.ora || "Ora"}<br><i class="fas fa-map-marker-alt"></i> ${settings.vendi || "Lokacioni"}`;
         }
     });
 
@@ -66,8 +73,10 @@
         const msg = document.getElementById('msg');
         const btn = document.getElementById('confBtn');
         
+        if(!idVal) { alert("Shkruani ID-në!"); return; }
+
         const doc = await db.collection("config").doc("staff").get();
-        if(!doc.exists) return;
+        if(!doc.exists) { alert("Sistemi nuk është gati!"); return; }
         
         const lojtari = doc.data().lojtaret.find(p => p.id === idVal);
         msg.style.display = "block";
