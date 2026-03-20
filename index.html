@@ -8,33 +8,57 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #0f111a; color: white; font-family: 'Segoe UI', sans-serif; padding: 15px; }
-        .card { background: #1a1d29; max-width: 450px; margin: auto; padding: 20px; border-radius: 20px; border: 1px solid #333; }
-        .match-info { border: 1px solid #00d2ff; padding: 15px; border-radius: 12px; margin: 15px 0; background: rgba(0,210,255,0.05); text-align: center; }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #444; color: white; border-radius: 10px; text-align: center; font-size: 18px; box-sizing: border-box; }
-        .btn { width: 100%; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-check { background: #00d2ff; color: black; }
-        .btn-konfirmo { background: #39ff14; color: black; display: none; margin-top: 15px; }
-        .status-msg { margin-top: 15px; padding: 10px; border-radius: 8px; display: none; text-align: center; font-weight: bold; }
-        .pjesemarresit { margin-top: 25px; border-top: 1px solid #333; padding-top: 15px; }
-        .p-item { background: #111; padding: 10px; border-radius: 8px; margin-bottom: 5px; border-left: 4px solid #39ff14; display: flex; justify-content: space-between; }
+        :root { --blue: #00d2ff; --green: #39ff14; --dark: #0f111a; --card: #1a1d29; }
+        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; }
+        
+        .card { background: var(--card); width: 100%; max-width: 400px; padding: 30px; border-radius: 25px; border: 1px solid #333; box-shadow: 0 15px 35px rgba(0,0,0,0.6); text-align: center; }
+        
+        /* Hapat e aplikacionit */
+        #step-check, #step-confirm, #step-list { display: none; }
+        #step-check { display: block; } /* Hapi i pare aktiv */
+
+        .logo-icon { font-size: 50px; color: var(--blue); margin-bottom: 20px; }
+        h2 { margin-bottom: 10px; font-size: 22px; }
+        p { color: #888; font-size: 14px; margin-bottom: 25px; }
+
+        input { width: 100%; padding: 18px; background: #000; border: 2px solid #333; color: white; border-radius: 12px; font-size: 20px; text-align: center; outline: none; transition: 0.3s; box-sizing: border-box; }
+        input:focus { border-color: var(--blue); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 20px; transition: 0.3s; font-size: 14px; }
+        .btn-blue { background: var(--blue); color: black; }
+        .btn-green { background: var(--green); color: black; }
+        .btn:active { transform: scale(0.96); }
+
+        .info-box { background: rgba(0, 210, 255, 0.05); border: 1px solid var(--blue); padding: 15px; border-radius: 15px; margin: 20px 0; }
+        .status-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-top: 10px; }
+
+        .p-item { background: #111; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--green); text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2 style="text-align:center; color:#00d2ff">LKIA MATCH CENTER</h2>
-    <div id="mDetails" class="match-info">Duke ngarkuar...</div>
+    <div id="step-check">
+        <div class="logo-icon"><i class="fas fa-user-shield"></i></div>
+        <h2>LKIA Match Center</h2>
+        <p>Shëno ID-në tënde për të vazhduar</p>
+        <input type="text" id="pID" placeholder="Shkruaj ID këtu..." inputmode="numeric">
+        <button class="btn btn-blue" onclick="kontrolloID()">IDENTIFIKOHU <i class="fas fa-arrow-right"></i></button>
+    </div>
 
-    <input type="text" id="pID" placeholder="Shkruaj ID tënde (Telefonin)">
-    <button class="btn btn-check" onclick="kycu()">KONTROLLO ORARIN TIM</button>
+    <div id="step-confirm">
+        <h2 id="userName" style="color:var(--blue)">...</h2>
+        <div class="info-box" id="matchData">Duke ngarkuar...</div>
+        <div id="statusResult"></div>
+        <button id="btnConfirmAction" class="btn btn-green" onclick="konfirmoPjesemarrjen()">KONFIRMO PJESËMARRJEN ✅</button>
+        <button class="btn" style="background:transparent; color:#555;" onclick="location.reload()">Anulo</button>
+    </div>
 
-    <div id="sMsg" class="status-msg"></div>
-    <button id="btnK" class="btn btn-konfirmo" onclick="konfirmo()">KONFIRMO PJESËMARRJEN ✅</button>
-
-    <div class="pjesemarresit">
-        <h4><i class="fas fa-list"></i> Lista e Konfirmuar:</h4>
-        <div id="lista"></div>
+    <div id="step-list">
+        <h3 style="color:var(--green)"><i class="fas fa-check-circle"></i> U konfirmuat!</h3>
+        <p>Lista e lojtarëve për këtë termin:</p>
+        <div id="finalList" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px;"></div>
+        <button class="btn btn-blue" onclick="location.reload()">MBYLL <i class="fas fa-times"></i></button>
     </div>
 </div>
 
@@ -50,69 +74,83 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let dataN = ""; 
-    let lAktual = null;
+    let lojtariAktual = null;
+    let indexDataMatch = -1;
 
-    async function init() {
-        const doc = await db.collection("config").doc("main").get();
-        if(doc.exists) {
-            const d = doc.data();
-            dataN = d.data;
-            document.getElementById('mDetails').innerHTML = `<strong>${d.titulli}</strong><br>${d.vendi}<br>📅 ${d.dita}, ${d.data} | ⏰ ${d.ora}`;
+    // Kontrollo ID-ne
+    async function kontrolloID() {
+        const id = document.getElementById('pID').value.trim();
+        if(!id) return;
+
+        // Merr te dhenat e ndeshjes dhe staffit
+        const mainDoc = await db.collection("config").doc("main").get();
+        const staffDoc = await db.collection("config").doc("staff").get();
+
+        if(!mainDoc.exists || !staffDoc.exists) return alert("Sistemi nuk eshte gati!");
+
+        const d = mainDoc.data();
+        const p = staffDoc.data().lojtaret.find(x => x.id === id);
+
+        if(!p) return alert("Kjo ID nuk u gjet ne sistem!");
+
+        lojtariAktual = p;
+
+        // Kalkulo diten
+        if(d.data) {
+            indexDataMatch = parseInt(d.data.split('.')[0]) - 1;
         }
-        shfaqListen();
-    }
 
-    async function kycu() {
-        const id = document.getElementById('pID').value;
-        const staff = await db.collection("config").doc("staff").get();
-        const p = staff.data().lojtaret.find(x => x.id === id);
+        // Shfaq detajet te Hapi 2
+        document.getElementById('userName').innerText = "Përshëndetje " + p.n;
+        document.getElementById('matchData').innerHTML = `
+            <b style="color:white">${d.titulli}</b><br>
+            <span style="font-size:13px">${d.vendi}</span><br>
+            <span style="color:var(--blue)">${d.data} | Ora: ${d.ora}</span>
+        `;
 
-        if(!p) return alert("ID nuk ekziston!");
-        lAktual = p;
+        const orariPunes = (p.s && p.s[indexDataMatch]) ? p.s[indexDataMatch].toUpperCase() : "OFF";
+        const resultDiv = document.getElementById('statusResult');
+        const btnC = document.getElementById('btnConfirmAction');
 
-        const dita = parseInt(dataN.split('.')[0]); // Merr diten psh 25
-        const orari = p.s[dita-1]; // Shikon orarin te kolona 25
-
-        const sMsg = document.getElementById('sMsg');
-        const btnK = document.getElementById('btnK');
-        sMsg.style.display = "block";
-
-        if(orari === "16") {
-            sMsg.innerHTML = `Përshëndetje ${p.n}, je MASDITE (16-00). Je në punë! ❌`;
-            sMsg.style.background = "rgba(255,0,0,0.2)";
-            btnK.style.display = "none";
+        if(orariPunes === "16") {
+            resultDiv.innerHTML = `<div class="status-badge" style="background:rgba(255,0,0,0.2); color:#ff4d4d">JE MASDITE (16:00) - NUK MUND TË VISH ❌</div>`;
+            btnC.style.display = "none";
         } else {
-            let t = (orari === "OFF") ? "PUSHIM" : (orari === "8") ? "PARADITE" : orari;
-            sMsg.innerHTML = `Përshëndetje ${p.n}, je ${t}. Mund të vish! ✅`;
-            sMsg.style.background = "rgba(0,255,0,0.2)";
-            btnK.style.display = "block";
+            let tekstOrari = (orariPunes === "OFF") ? "JE PUSHIM" : (orariPunes === "8") ? "JE PARADITE (08:00)" : "JE " + orariPunes;
+            resultDiv.innerHTML = `<div class="status-badge" style="background:rgba(57,255,20,0.2); color:var(--green)">${tekstOrari} - MUND TË VISH ✅</div>`;
+            btnC.style.display = "block";
         }
+
+        // Kalimi ne Hapin 2
+        document.getElementById('step-check').style.display = "none";
+        document.getElementById('step-confirm').style.display = "block";
     }
 
-    async function konfirmo() {
+    // Konfirmo
+    async function konfirmoPjesemarrjen() {
         const ref = db.collection("matches").doc("current");
         const doc = await ref.get();
         let list = doc.exists ? doc.data().pjesemarresit : [];
-        if(!list.find(x => x.id === lAktual.id)) {
-            list.push({ n: lAktual.n, id: lAktual.id });
+
+        if(!list.find(x => x.id === lojtariAktual.id)) {
+            list.push({ n: lojtariAktual.n, id: lojtariAktual.id });
             await ref.set({ pjesemarresit: list });
-            alert("U konfirmove!");
-            shfaqListen();
-        } else { alert("Je në listë!"); }
+        }
+
+        shfaqListenFinale(list);
+        
+        // Kalimi ne Hapin 3
+        document.getElementById('step-confirm').style.display = "none";
+        document.getElementById('step-list').style.display = "block";
     }
 
-    async function shfaqListen() {
-        const doc = await db.collection("matches").doc("current").get();
-        const div = document.getElementById('lista');
+    function shfaqListenFinale(lista) {
+        const div = document.getElementById('finalList');
         div.innerHTML = "";
-        if(doc.exists) {
-            doc.data().pjesemarresit.forEach((p, i) => {
-                div.innerHTML += `<div class="p-item"><span>${i+1}. ${p.n}</span> <i class="fas fa-check-circle"></i></div>`;
-            });
-        }
+        lista.forEach((p, i) => {
+            div.innerHTML += `<div class="p-item"><span>${i+1}. ${p.n}</span> <i class="fas fa-check-circle" style="color:var(--green)"></i></div>`;
+        });
     }
-    init();
 </script>
 </body>
 </html>
