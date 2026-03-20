@@ -10,34 +10,46 @@
     <style>
         :root { --blue: #00d2ff; --green: #39ff14; --red: #ff4d4d; --dark: #0f111a; --card: #1a1d29; }
         body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; }
+        
         .card { background: var(--card); width: 100%; max-width: 400px; padding: 30px; border-radius: 25px; border: 1px solid #333; box-shadow: 0 15px 35px rgba(0,0,0,0.6); text-align: center; }
+        
         #step-check, #step-confirm, #step-list { display: none; }
         #step-check { display: block; }
+
         .logo-icon { font-size: 50px; color: var(--blue); margin-bottom: 20px; }
-        input { width: 100%; padding: 18px; background: #000; border: 2px solid #333; color: white; border-radius: 12px; font-size: 20px; text-align: center; box-sizing: border-box; outline: none; }
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; transition: 0.3s; }
+        h2 { margin-bottom: 10px; font-size: 22px; }
+        p { color: #888; font-size: 14px; margin-bottom: 25px; }
+
+        input { width: 100%; padding: 18px; background: #000; border: 2px solid #333; color: white; border-radius: 12px; font-size: 20px; text-align: center; outline: none; transition: 0.3s; box-sizing: border-box; }
+        input:focus { border-color: var(--blue); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+
+        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; transition: 0.3s; font-size: 14px; }
         .btn-blue { background: var(--blue); color: black; }
         .btn-green { background: var(--green); color: black; }
         .btn-red { background: var(--red); color: white; }
+        .btn:active { transform: scale(0.96); }
+
         .info-box { background: rgba(0, 210, 255, 0.05); border: 1px solid var(--blue); padding: 15px; border-radius: 15px; margin: 20px 0; }
         .status-badge { display: inline-block; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
-        .p-item { background: #111; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--green); text-align: left; }
+
+        .p-item { background: #111; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--green); text-align: left; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div id="step-check">
-        <div class="logo-icon"><i class="fas fa-plane-departure"></i></div>
+        <div class="logo-icon"><i class="fas fa-id-card"></i></div>
         <h2>LKIA Match Center</h2>
-        <p style="color:#888">Shëno ID-në tënde</p>
-        <input type="text" id="pID" placeholder="ID..." inputmode="numeric">
-        <button class="btn btn-blue" onclick="kontrolloID()">Hyr në Sistem <i class="fas fa-sign-in-alt"></i></button>
+        <p>Shëno ID-në tënde për të hyrë</p>
+        <input type="text" id="pID" placeholder="Shkruaj ID..." inputmode="numeric">
+        <button class="btn btn-blue" onclick="kontrolloID()">IDENTIFIKOHU <i class="fas fa-arrow-right"></i></button>
     </div>
 
     <div id="step-confirm">
         <h2 id="userName" style="color:var(--blue)">...</h2>
-        <div class="info-box" id="matchData">...</div>
+        <div class="info-box" id="matchData">Duke ngarkuar...</div>
         <div id="statusResult"></div>
         <p style="margin-bottom:5px; font-size:12px;">A vjen në këtë termin?</p>
         <button class="btn btn-green" onclick="ekzekutoKonfirmimin(true)">PO, VIJ ✅</button>
@@ -47,9 +59,9 @@
     <div id="step-list">
         <h3 id="finalMsg" style="margin-bottom:5px;"></h3>
         <p id="matchInfoSmall" style="font-size:13px; color:var(--blue); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;"></p>
-        <p style="font-size:12px; color:#888; text-align:left;">Lojtarët që kanë konfirmuar:</p>
+        <p style="font-size:12px; color:#888; text-align:left;">Lojtarët që vijnë:</p>
         <div id="finalList" style="max-height: 350px; overflow-y: auto; margin-top:10px;"></div>
-        <button class="btn btn-blue" onclick="location.reload()">DIL <i class="fas fa-times"></i></button>
+        <button class="btn btn-blue" onclick="location.reload()">DIL <i class="fas fa-sign-out-alt"></i></button>
     </div>
 </div>
 
@@ -78,21 +90,28 @@
         if(!mainDoc.exists || !staffDoc.exists) return alert("Sistemi nuk është gati!");
 
         const d = mainDoc.data();
-        const p = staffDoc.data().lojtaret.find(x => x.id === id);
-        if(!p) return alert("ID nuk u gjet!");
+        const lojtaret = staffDoc.data().lojtaret;
+        const p = lojtaret.find(x => x.id === id);
+
+        if(!p) return alert("ID e gabuar! Provo përsëri.");
 
         lojtari = p;
-        matchID = "match_" + d.data.replace(/\./g, "-");
-        matchDetailsHTML = `<b>${d.titulli}</b><br>${d.data} | Ora: ${d.ora}`;
+
+        // KRIJIMI I ID UNIK (Nese ndryshon ora, data apo stadiumi, kjo ID ndryshon)
+        const cleanVendi = d.vendi.replace(/\s+/g, '-').toLowerCase();
+        const cleanOra = d.ora.replace(/:/g, '-');
+        matchID = `match_${d.data.replace(/\./g, '-')}_${cleanOra}_${cleanVendi}`;
+
+        matchDetailsHTML = `<b>${d.titulli}</b><br>${d.vendi}<br>${d.data} | Ora: ${d.ora}`;
         document.getElementById('matchInfoSmall').innerHTML = matchDetailsHTML;
 
-        // KONTROLLI KRITIK: A eshte lojtari ne listen e kesaj ndeshjeje?
+        // Kontrollojme nese lojtari ka konfirmuar FIKS kete version te terminit
         const currentMatch = await db.collection("matches").doc(matchID).get();
         let list = currentMatch.exists ? currentMatch.data().pjesemarresit : [];
         const konfirmimiEkzistues = list.find(x => x.id === id);
 
         if(konfirmimiEkzistues) {
-            // Nese ka konfirmuar me pare, dergoje direkt te lista
+            // Nese ka konfirmuar me pare detajet e njejta, e dergojme te lista direkt
             document.getElementById('finalMsg').innerHTML = konfirmimiEkzistues.vjen ? 
                 "<span style='color:var(--green)'>Mirëseveprore, " + p.n + "! ✅</span>" : 
                 "<span style='color:var(--red)'>Përshëndetje, " + p.n + "! ❌</span>";
@@ -100,7 +119,7 @@
             document.getElementById('step-check').style.display = "none";
             document.getElementById('step-list').style.display = "block";
         } else {
-            // Nese eshte hera e pare, shfaq hapi 2 (Konfirmimin)
+            // Nese eshte hera e pare ose nese ka ndryshuar orari/vendi:
             document.getElementById('userName').innerText = p.n;
             document.getElementById('matchData').innerHTML = matchDetailsHTML;
             
@@ -125,7 +144,7 @@
         const doc = await ref.get();
         let list = doc.exists ? doc.data().pjesemarresit : [];
 
-        // Sigurohemi qe nuk ka duplikate (per siguri)
+        // Filtrojme per te mos pasur dublikate
         list = list.filter(x => x.id !== lojtari.id);
         list.push({ n: lojtari.n, id: lojtari.id, vjen: vjen });
         
@@ -133,7 +152,7 @@
 
         document.getElementById('finalMsg').innerHTML = vjen ? 
             "<span style='color:var(--green)'>U konfirmove! ✅</span>" : 
-            "<span style='color:var(--red)'>U njoftua! ❌</span>";
+            "<span style='color:var(--red)'>Njoftimi u dërgua! ❌</span>";
 
         shfaqListen(list);
         document.getElementById('step-confirm').style.display = "none";
@@ -151,7 +170,11 @@
         }
 
         vijne.forEach((p, i) => {
-            div.innerHTML += `<div class="p-item"><span>${i+1}. ${p.n}</span> <i class="fas fa-check-circle" style="color:var(--green)"></i></div>`;
+            div.innerHTML += `
+                <div class="p-item">
+                    <span><b>${i+1}.</b> ${p.n}</span> 
+                    <i class="fas fa-check-circle" style="color:var(--green)"></i>
+                </div>`;
         });
     }
 </script>
