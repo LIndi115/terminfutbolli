@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <title>GSE Admin - Paneli Kontrollit</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #0f111a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; }
+        .admin-box { max-width: 600px; margin: auto; background: #1a1d29; padding: 30px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #00d2ff; text-transform: uppercase; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
+        label { display: block; margin-top: 15px; font-size: 12px; color: #888; text-transform: uppercase; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 12px; margin-top: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #00d2ff; }
+        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-primary { background: #00d2ff; color: black; }
+        .btn-add { background: #39ff14; color: black; }
+        .btn-reset { background: #ff3131; color: white; }
+        .btn-upload { background: #f39c12; color: black; }
+        .flex-row { display: flex; gap: 10px; }
+        .info-text { font-size: 11px; color: #aaa; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-box">
+    <h2><i class="fas fa-cogs"></i> 1. Detajet e Terminit</h2>
+    <label>Titulli (psh: Termin Futbolli Ramp)</label>
+    <input type="text" id="titulli" placeholder="Titulli që do t'u shfaqet lojtarëve">
+
+    <label>Vendi / Fusha</label>
+    <input type="text" id="vendi" placeholder="Emri i fushës">
+
+    <div class="flex-row">
+        <div style="flex: 1;">
+            <label>Data</label>
+            <input type="text" id="data" placeholder="Psh: 26 Mars">
+        </div>
+        <div style="flex: 1;">
+            <label>Ora</label>
+            <input type="text" id="ora" placeholder="Psh: 20:00">
+        </div>
+    </div>
+    <button class="btn btn-primary" onclick="ruajDetajet()"><i class="fas fa-save"></i> Përditëso Detajet</button>
+</div>
+
+<div class="admin-box">
+    <h2><i class="fas fa-user-plus"></i> 2. Regjistro Lojtar të Ri</h2>
+    <div class="flex-row">
+        <div style="flex: 2;">
+            <label>Emri dhe Mbiemri</label>
+            <input type="text" id="newPlayerName" placeholder="Emri i plotë">
+        </div>
+        <div style="flex: 1;">
+            <label>ID Kodi</label>
+            <input type="number" id="newPlayerId" placeholder="ID">
+        </div>
+    </div>
+    <button class="btn btn-add" onclick="shtoLojtarin()"><i class="fas fa-plus"></i> Shto Lojtarin në Sistem</button>
+</div>
+
+<div class="admin-box">
+    <h2><i class="fas fa-calendar-alt"></i> 3. Orari i Muajit & Reset</h2>
+    <label>Zgjidh Muajin për Foto</label>
+    <select id="muajiOrarit">
+        <option value="Janar">Janar</option><option value="Shkurt">Shkurt</option>
+        <option value="Mars">Mars</option><option value="Prill">Prill</option>
+        <option value="Maj">Maj</option><option value="Qershor">Qershor</option>
+        <option value="Korrik">Korrik</option><option value="Gusht">Gusht</option>
+        <option value="Shtator">Shtator</option><option value="Tetor">Tetor</option>
+        <option value="Nëntor">Nëntor</option><option value="Dhjetor">Dhjetor</option>
+    </select>
+    
+    <label>Foto e Orarit (Për rekord)</label>
+    <input type="file" id="fotoOrarit" accept="image/*">
+    <p class="info-text">Pasi të zgjedhësh foton, ma dërgo mua në chat që ta kthej në kod.</p>
+    
+    <button class="btn btn-upload" onclick="alert('Fotoja u zgjodh! Tani dërgoja Gemini-t në chat.')"><i class="fas fa-camera"></i> Procesi i Fotos</button>
+    <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+    <button class="btn btn-reset" onclick="resetLista()"><i class="fas fa-trash-alt"></i> Fshij Konfirmimet (Reset Javor)</button>
+</div>
+
+<script>
+    // NGJITE CONFIG TËND TË FIREBASE KËTU
+    const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", storageBucket: "...", messagingSenderId: "...", appId: "..." };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Merr të dhënat aktuale kur hapet faqja
+    db.collection("config").doc("main").get().then(doc => {
+        if(doc.exists) {
+            const d = doc.data();
+            document.getElementById('titulli').value = d.titulli || "";
+            document.getElementById('vendi').value = d.vendi || "";
+            document.getElementById('data').value = d.data || "";
+            document.getElementById('ora').value = d.ora || "";
+        }
+    });
+
+    function ruajDetajet() {
+        db.collection("config").doc("main").set({
+            titulli: document.getElementById('titulli').value,
+            vendi: document.getElementById('vendi').value,
+            data: document.getElementById('data').value,
+            ora: document.getElementById('ora').value
+        }).then(() => alert("Detajet u ruajtën me sukses!"));
+    }
+
+    async function shtoLojtarin() {
+        const emri = document.getElementById('newPlayerName').value;
+        const id = document.getElementById('newPlayerId').value;
+        if(!emri || !id) { alert("Plotëso emrin dhe ID-në!"); return; }
+
+        const docRef = db.collection("config").doc("staff");
+        const doc = await docRef.get();
+        let lojtaret = doc.exists ? (doc.data().lojtaret || []) : [];
+
+        lojtaret.push({ id: id, n: emri, s: Array(31).fill("OFF") });
+        await docRef.set({ lojtaret: lojtaret });
+        
+        alert("Lojtari " + emri + " u shtua!");
+        document.getElementById('newPlayerName').value = "";
+        document.getElementById('newPlayerId').value = "";
+    }
+
+    function resetLista() {
+        if(confirm("A dëshiron ta pastrosh listën e të konfirmuarve për këtë javë?")) {
+            db.collection("terminet").get().then(snap => {
+                snap.forEach(doc => doc.ref.delete());
+                alert("Lista u pastrua!");
+            });
+        }
+    }
+</script>
+</body>
+</html>
