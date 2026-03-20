@@ -2,27 +2,33 @@
 <html lang="sq">
 <head>
     <meta charset="UTF-8">
-    <title>GSE Admin - AI Scanner v4.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GSE Admin - AI Scanner 2026</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         body { background: #0f111a; color: white; font-family: 'Segoe UI', sans-serif; padding: 20px; }
-        .admin-box { max-width: 650px; margin: auto; background: #1a1d29; padding: 30px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; }
-        h2 { color: #00d2ff; text-transform: uppercase; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; }
+        .admin-box { max-width: 650px; margin: auto; background: #1a1d29; padding: 30px; border-radius: 20px; border: 1px solid #333; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h2 { color: #00d2ff; text-transform: uppercase; font-size: 18px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; gap: 10px; }
         label { display: block; margin-top: 15px; font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        input, select { width: 100%; padding: 12px; margin-top: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; }
-        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 8px; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: #00d2ff; }
+        .btn { width: 100%; padding: 15px; margin-top: 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
         .btn-primary { background: #00d2ff; color: black; }
         .btn-add { background: #39ff14; color: black; }
         .btn-reset { background: #ff3131; color: white; }
         .btn-orange { background: #ff9f43; color: black; }
-        .btn-danger-small { background: #ff3131; color: white; padding: 8px; font-size: 10px; margin-top: 10px; width: auto; display: inline-block; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-danger-small { background: #ff3131; color: white; padding: 8px 15px; font-size: 10px; margin-top: 10px; width: auto; display: inline-block; border-radius: 5px; border: none; cursor: pointer; }
         
-        #uploadStatus { margin-top: 10px; font-size: 13px; color: #39ff14; font-weight: bold; display: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+        #uploadStatus { margin-top: 15px; font-size: 13px; color: #39ff14; font-weight: bold; display: none; background: rgba(0,210,255,0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(0,210,255,0.2); }
+        .progress-bar { height: 4px; background: #333; width: 100%; margin-top: 10px; border-radius: 2px; overflow: hidden; }
+        #progressFill { height: 100%; background: #00d2ff; width: 0%; transition: 0.2s; }
+
         .player-list { margin-top: 20px; border-top: 1px dashed #444; padding-top: 10px; }
         .player-item { display: flex; justify-content: space-between; align-items: center; background: #000; padding: 12px; margin-top: 5px; border-radius: 8px; font-size: 14px; border-left: 3px solid #00d2ff; }
         .delete-icon { color: #ff3131; cursor: pointer; font-size: 16px; transition: 0.2s; }
@@ -61,12 +67,16 @@
         <option value="Dhjetor">Dhjetor</option>
     </select>
     
-    <label>Opsionet e Muajit</label>
-    <button class="btn btn-danger-small" onclick="fshijOrarinMujor()"><i class="fas fa-trash"></i> FSHIJ ORARIN E KËTIJ MUAJI</button>
+    <button class="btn btn-danger-small" onclick="fshijOrarinMujor()"><i class="fas fa-trash"></i> FSHIJ FOTON E MUAJIT</button>
 
-    <label style="margin-top:20px;">Ngarko foton e re</label>
+    <label style="margin-top:20px;">Ngarko foton e re (Orari LKIA)</label>
     <input type="file" id="fileInput" accept="image/*" style="padding: 10px; background: #111;">
-    <div id="uploadStatus"></div>
+    
+    <div id="uploadStatus">
+        <span id="statusText">Duke u bërë gati...</span>
+        <div class="progress-bar"><div id="progressFill"></div></div>
+    </div>
+
     <button class="btn btn-orange" id="uploadBtn" onclick="analizoDheNgarko()">SKANO DHE PËRDITËSO</button>
 </div>
 
@@ -86,6 +96,7 @@
 </div>
 
 <script>
+    // Konfigurimi i Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyBh_7BwfNbKbscPSW1ZN9Y_UvAntsjl9Wg",
         authDomain: "herolind-6ca5f.firebaseapp.com",
@@ -98,7 +109,19 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    window.onload = () => { ngarkoLojtaret(); };
+    window.onload = () => { ngarkoLojtaret(); ngarkoShenimetAktuale(); };
+
+    async function ngarkoShenimetAktuale() {
+        const doc = await db.collection("config").doc("main").get();
+        if(doc.exists) {
+            const d = doc.data();
+            document.getElementById('titulli').value = d.titulli || "";
+            document.getElementById('dita_javes').value = d.dita || "";
+            document.getElementById('vendi').value = d.vendi || "";
+            document.getElementById('data').value = d.data || "";
+            document.getElementById('ora').value = d.ora || "";
+        }
+    }
 
     function ruajDetajet() {
         db.collection("config").doc("main").set({
@@ -107,45 +130,55 @@
             vendi: document.getElementById('vendi').value,
             data: document.getElementById('data').value,
             ora: document.getElementById('ora').value
-        }, {merge: true}).then(() => alert("U përditësua!")).catch(e => alert(e.message));
-    }
-
-    async function fshijOrarinMujor() {
-        const muaji = document.getElementById('muaji_select').value;
-        if(confirm("A je i sigurt që dëshiron të fshish foton e orarit për muajin " + muaji + "?")) {
-            await db.collection("config").doc("orar_mujore").update({
-                [muaji]: firebase.firestore.FieldValue.delete()
-            });
-            alert("Orari i muajit " + muaji + " u fshi!");
-        }
+        }, {merge: true}).then(() => alert("U përditësua me sukses!")).catch(e => alert(e.message));
     }
 
     async function analizoDheNgarko() {
         const file = document.getElementById('fileInput').files[0];
         const muaji = document.getElementById('muaji_select').value;
-        const status = document.getElementById('uploadStatus');
+        const statusDiv = document.getElementById('uploadStatus');
+        const statusText = document.getElementById('statusText');
+        const progressFill = document.getElementById('progressFill');
         const btn = document.getElementById('uploadBtn');
 
-        if (!file) return alert("Zgjidh një foto!");
+        if (!file) return alert("Ju lutem zgjidhni një foto!");
 
-        status.style.display = "block";
-        status.innerText = "Duke lexuar tekstin me AI... ⏳";
+        statusDiv.style.display = "block";
         btn.disabled = true;
 
         try {
-            const { data: { text } } = await Tesseract.recognize(file, 'eng+sqi');
+            statusText.innerText = "Duke nisur AI... ⏳";
+            
+            // Krijojmë Worker-in për stabilitet maksimal
+            const worker = await Tesseract.createWorker({
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        let p = Math.round(m.progress * 100);
+                        statusText.innerText = `Duke lexuar tekstin: ${p}%`;
+                        progressFill.style.width = p + "%";
+                    }
+                }
+            });
+
+            await worker.loadLanguage('eng+sqi');
+            await worker.initialize('eng+sqi');
+            const { data: { text } } = await worker.recognize(file);
+            await worker.terminate();
+
             const docRef = db.collection("config").doc("staff");
             const doc = await docRef.get();
-            let lojtaret = doc.exists ? doc.data().lojtaret : [];
+            let lojtaret = doc.exists ? (doc.data().lojtaret || []) : [];
 
             let updateCount = 0;
             const rreshtat = text.split('\n');
 
+            // Logjika e krahasimit të emrave
             lojtaret.forEach(p => {
                 const rreshtiLojtarit = rreshtat.find(r => r.toUpperCase().includes(p.n.toUpperCase()));
                 if (rreshtiLojtarit) {
                     let orariRi = [];
                     for(let d=1; d<=31; d++) {
+                        // Kontrollojmë nëse ka ndërrimin "16" në atë rresht
                         orariRi.push(rreshtiLojtarit.includes("16") ? "16" : "OFF");
                     }
                     p.s = orariRi;
@@ -155,16 +188,19 @@
 
             await docRef.set({ lojtaret: lojtaret });
 
+            // Ruajtja e fotos në Firebase Storage
             const storageRef = storage.ref('oraret/' + muaji + '_' + Date.now());
             await storageRef.put(file);
             const url = await storageRef.getDownloadURL();
             await db.collection("config").doc("orar_mujore").set({ [muaji]: url }, { merge: true });
 
-            alert("Sukses! U përditësuan " + updateCount + " lojtarë.");
+            alert("Sukses! U lexua fotoja dhe u përditësuan " + updateCount + " lojtarë.");
         } catch (e) {
-            alert("Gabim: " + e.message);
+            console.error(e);
+            alert("Gabim gjatë skanimit: " + e.message);
         } finally {
-            status.style.display = "none";
+            statusDiv.style.display = "none";
+            progressFill.style.width = "0%";
             btn.disabled = false;
         }
     }
@@ -202,7 +238,7 @@
     }
 
     async function fshijLojtarin(index) {
-        if(confirm("A je i sigurt që dëshiron ta fshish këtë lojtar nga sistemi?")) {
+        if(confirm("A je i sigurt që dëshiron ta fshish këtë lojtar?")) {
             const docRef = db.collection("config").doc("staff");
             const doc = await docRef.get();
             let lojtaret = doc.data().lojtaret;
@@ -213,7 +249,7 @@
     }
 
     async function resetTotal() {
-        if(confirm("Kujdes: Kjo fshin terminin dhe konfirmimet!")) {
+        if(confirm("Kujdes: Kjo fshin detajet e terminit dhe të gjitha konfirmimet!")) {
             await db.collection("config").doc("main").set({
                 titulli: "TERMIN I RI", dita: "", vendi: "", data: "", ora: ""
             });
@@ -223,6 +259,16 @@
             await batch.commit();
             alert("Sistemi u resetua!");
             location.reload();
+        }
+    }
+
+    async function fshijOrarinMujor() {
+        const muaji = document.getElementById('muaji_select').value;
+        if(confirm("Fshij foton e orarit për muajin " + muaji + "?")) {
+            await db.collection("config").doc("orar_mujore").update({
+                [muaji]: firebase.firestore.FieldValue.delete()
+            });
+            alert("U fshi!");
         }
     }
 </script>
