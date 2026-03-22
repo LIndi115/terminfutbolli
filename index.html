@@ -3,65 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LKIA Match Center</title>
+    <title>RAMP FUTBOLL | Match Center</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,700;0,900;1,900&display=swap" rel="stylesheet">
     <style>
-        :root { --blue: #00d2ff; --green: #39ff14; --red: #ff4d4d; --dark: #0f111a; --card: #1a1d29; }
-        body { background: var(--dark); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 15px; }
-        
-        .card { background: var(--card); width: 100%; max-width: 400px; padding: 30px; border-radius: 25px; border: 1px solid #333; box-shadow: 0 15px 35px rgba(0,0,0,0.6); text-align: center; }
-        
-        #step-check, #step-confirm, #step-list { display: none; }
-        #step-check { display: block; }
+        :root {
+            --ramp-yellow: #ffcc00;
+            --field-line: rgba(255, 255, 255, 0.4);
+            --red: #ff4d4d;
+            --green: #39ff14;
+        }
 
-        .logo-icon { font-size: 50px; color: var(--blue); margin-bottom: 20px; }
-        h2 { margin-bottom: 10px; font-size: 22px; }
-        p { color: #888; font-size: 14px; margin-bottom: 25px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Exo 2', sans-serif; }
 
-        input { width: 100%; padding: 18px; background: #000; border: 2px solid #333; color: white; border-radius: 12px; font-size: 20px; text-align: center; outline: none; transition: 0.3s; box-sizing: border-box; }
-        input:focus { border-color: var(--blue); box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+        body {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), 
+                        url('https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
 
-        .btn { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; transition: 0.3s; font-size: 14px; }
-        .btn-blue { background: var(--blue); color: black; }
+        .field-lines {
+            position: absolute;
+            width: 95%; height: 95%;
+            border: 2px solid var(--field-line);
+            pointer-events: none; opacity: 0.3; z-index: 1;
+        }
+
+        .ramp-container {
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            width: 92%; max-width: 420px;
+            padding: 40px 25px;
+            border-radius: 25px;
+            border: 1px solid rgba(255,204,0,0.3);
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            text-align: center; z-index: 10;
+        }
+
+        h1 { color: var(--ramp-yellow); font-size: 32px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 5px; }
+        .tagline { color: white; font-size: 10px; letter-spacing: 5px; margin-bottom: 30px; opacity: 0.6; text-transform: uppercase; }
+
+        .p-input {
+            width: 100%; background: #000; border: 2px solid #333; padding: 18px;
+            border-radius: 12px; color: white; font-size: 20px; text-align: center;
+            outline: none; margin-bottom: 20px; transition: 0.3s;
+        }
+        .p-input:focus { border-color: var(--ramp-yellow); box-shadow: 0 0 15px rgba(255, 204, 0, 0.2); }
+
+        .p-btn {
+            width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: 900;
+            cursor: pointer; text-transform: uppercase; margin-bottom: 10px; transition: 0.2s; font-size: 15px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-main { background: var(--ramp-yellow); color: black; }
         .btn-green { background: var(--green); color: black; }
         .btn-red { background: var(--red); color: white; }
-        .btn:active { transform: scale(0.96); }
+        .p-btn:active { transform: scale(0.96); }
 
-        .info-box { background: rgba(0, 210, 255, 0.05); border: 1px solid var(--blue); padding: 15px; border-radius: 15px; margin: 20px 0; }
-        .status-badge { display: inline-block; padding: 8px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; margin-bottom: 10px; }
+        .info-panel { background: rgba(255, 204, 0, 0.05); border: 1px solid rgba(255, 204, 0, 0.2); padding: 15px; border-radius: 15px; margin: 20px 0; color: white; text-align: left; font-size: 14px; }
+        .status-badge { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
 
-        .p-item { background: #111; padding: 12px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--green); text-align: left; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .squad-list { margin-top: 20px; max-height: 320px; overflow-y: auto; text-align: left; }
+        .player-row {
+            background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 10px;
+            margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid var(--green); color: white; animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        #step-confirm, #step-list { display: none; }
     </style>
 </head>
 <body>
 
-<div class="card">
+<div class="field-lines"></div>
+
+<div class="ramp-container">
     <div id="step-check">
-        <div class="logo-icon"><i class="fas fa-id-card"></i></div>
-        <h2>LKIA Match Center</h2>
-        <p>Shëno ID-në tënde për të hyrë</p>
-        <input type="text" id="pID" placeholder="Shkruaj ID..." inputmode="numeric">
-        <button class="btn btn-blue" onclick="kontrolloID()">IDENTIFIKOHU <i class="fas fa-arrow-right"></i></button>
+        <h1>RAMP FUTBOLL</h1>
+        <div class="tagline">SINTETIK MATCH CENTER</div>
+        <input type="text" id="pID" class="p-input" placeholder="SHKRUAJ ID TËNDE" inputmode="numeric">
+        <button class="p-btn btn-main" onclick="kontrolloID()">IDENTIFIKOHU <i class="fas fa-arrow-right"></i></button>
     </div>
 
     <div id="step-confirm">
-        <h2 id="userName" style="color:var(--blue)">...</h2>
-        <div class="info-box" id="matchData">Duke ngarkuar...</div>
+        <h2 id="userName" style="color:var(--ramp-yellow); margin-bottom: 10px; font-style: italic;">...</h2>
+        <div class="info-panel" id="matchData"></div>
         <div id="statusResult"></div>
-        <p style="margin-bottom:5px; font-size:12px;">A vjen në këtë termin?</p>
-        <button class="btn btn-green" onclick="ekzekutoKonfirmimin(true)">PO, VIJ ✅</button>
-        <button class="btn btn-red" onclick="ekzekutoKonfirmimin(false)">JO, NUK MUNDEM ❌</button>
+        <p style="color:#888; font-size: 12px; margin-bottom: 15px;">A vjen në këtë termin?</p>
+        <button class="p-btn btn-green" onclick="ekzekutoKonfirmimin(true)">PO, VIJ ✅</button>
+        <button class="p-btn btn-red" onclick="ekzekutoKonfirmimin(false)">JO, NUK MUNDEM ❌</button>
     </div>
 
     <div id="step-list">
-        <h3 id="finalMsg" style="margin-bottom:5px;"></h3>
-        <p id="matchInfoSmall" style="font-size:13px; color:var(--blue); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;"></p>
-        <p style="font-size:12px; color:#888; text-align:left;">Lojtarët që vijnë:</p>
-        <div id="finalList" style="max-height: 350px; overflow-y: auto; margin-top:10px;"></div>
-        <button class="btn btn-blue" onclick="location.reload()">DIL <i class="fas fa-sign-out-alt"></i></button>
+        <h3 id="finalMsg" style="margin-bottom: 5px;"></h3>
+        <p id="matchInfoSmall" style="font-size:12px; color:var(--ramp-yellow); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px; opacity: 0.8;"></p>
+        <div class="squad-list" id="finalList"></div>
+        <button class="p-btn btn-main" style="margin-top:20px; background:none; border:1px solid #444; color:white;" onclick="location.reload()">DIL <i class="fas fa-sign-out-alt"></i></button>
     </div>
 </div>
 
@@ -90,52 +138,47 @@
         if(!mainDoc.exists || !staffDoc.exists) return alert("Sistemi nuk është gati!");
 
         const d = mainDoc.data();
-        const lojtaret = staffDoc.data().lojtaret;
-        const p = lojtaret.find(x => x.id === id);
+        const p = staffDoc.data().lojtaret.find(x => x.id === id);
 
         if(!p) return alert("ID e gabuar! Provo përsëri.");
 
         lojtari = p;
-
-        // KRIJIMI I ID UNIK (Nese ndryshon ora, data apo stadiumi, kjo ID ndryshon)
+        
+        // Logjika e krijimit të ID-së si te kodi i vjetër
         const cleanVendi = d.vendi.replace(/\s+/g, '-').toLowerCase();
         const cleanOra = d.ora.replace(/:/g, '-');
         matchID = `match_${d.data.replace(/\./g, '-')}_${cleanOra}_${cleanVendi}`;
 
-        matchDetailsHTML = `<b>${d.titulli}</b><br>${d.vendi}<br>${d.data} | Ora: ${d.ora}`;
+        matchDetailsHTML = `<b>${d.titulli || 'NDESHJA'}</b><br>📍 ${d.vendi}<br>📅 ${d.data} | ⏰ Ora: ${d.ora}`;
         document.getElementById('matchInfoSmall').innerHTML = matchDetailsHTML;
 
-        // Kontrollojme nese lojtari ka konfirmuar FIKS kete version te terminit
         const currentMatch = await db.collection("matches").doc(matchID).get();
         let list = currentMatch.exists ? currentMatch.data().pjesemarresit : [];
         const konfirmimiEkzistues = list.find(x => x.id === id);
 
         if(konfirmimiEkzistues) {
-            // Nese ka konfirmuar me pare detajet e njejta, e dergojme te lista direkt
             document.getElementById('finalMsg').innerHTML = konfirmimiEkzistues.vjen ? 
                 "<span style='color:var(--green)'>Mirëseveprore, " + p.n + "! ✅</span>" : 
                 "<span style='color:var(--red)'>Përshëndetje, " + p.n + "! ❌</span>";
             shfaqListen(list);
-            document.getElementById('step-check').style.display = "none";
-            document.getElementById('step-list').style.display = "block";
+            switchStep('step-list');
         } else {
-            // Nese eshte hera e pare ose nese ka ndryshuar orari/vendi:
             document.getElementById('userName').innerText = p.n;
             document.getElementById('matchData').innerHTML = matchDetailsHTML;
             
+            // Logjika e kontrollit të orarit (8, 16, OFF)
             const indexData = parseInt(d.data.split('.')[0]) - 1;
             const orari = (p.s && p.s[indexData]) ? p.s[indexData].toUpperCase() : "OFF";
             const resDiv = document.getElementById('statusResult');
 
             if(orari === "16") {
-                resDiv.innerHTML = `<div class="status-badge" style="background:rgba(255,0,0,0.2); color:var(--red)">JE MASDITE (16:00) ❌</div>`;
+                resDiv.innerHTML = `<div class="status-badge" style="background:rgba(255,77,77,0.2); color:var(--red)">JE MASDITE (16:00) ❌</div>`;
             } else {
                 let t = (orari === "OFF") ? "JE PUSHIM" : (orari === "8") ? "JE PARADITE (08:00)" : "JE " + orari;
                 resDiv.innerHTML = `<div class="status-badge" style="background:rgba(57,255,20,0.2); color:var(--green)">${t} ✅</div>`;
             }
 
-            document.getElementById('step-check').style.display = "none";
-            document.getElementById('step-confirm').style.display = "block";
+            switchStep('step-confirm');
         }
     }
 
@@ -144,7 +187,6 @@
         const doc = await ref.get();
         let list = doc.exists ? doc.data().pjesemarresit : [];
 
-        // Filtrojme per te mos pasur dublikate
         list = list.filter(x => x.id !== lojtari.id);
         list.push({ n: lojtari.n, id: lojtari.id, vjen: vjen });
         
@@ -155,8 +197,7 @@
             "<span style='color:var(--red)'>Njoftimi u dërgua! ❌</span>";
 
         shfaqListen(list);
-        document.getElementById('step-confirm').style.display = "none";
-        document.getElementById('step-list').style.display = "block";
+        switchStep('step-list');
     }
 
     function shfaqListen(lista) {
@@ -165,17 +206,24 @@
         const vijne = lista.filter(x => x.vjen === true);
         
         if(vijne.length === 0) {
-            div.innerHTML = "<p style='color:#555; text-align:center;'>Asnjë konfirmim deri tani.</p>";
+            div.innerHTML = "<p style='color:#555; text-align:center; font-size:13px;'>Asnjë konfirmim deri tani.</p>";
             return;
         }
 
         vijne.forEach((p, i) => {
             div.innerHTML += `
-                <div class="p-item">
+                <div class="player-row">
                     <span><b>${i+1}.</b> ${p.n}</span> 
                     <i class="fas fa-check-circle" style="color:var(--green)"></i>
                 </div>`;
         });
+    }
+
+    function switchStep(stepId) {
+        document.getElementById('step-check').style.display = "none";
+        document.getElementById('step-confirm').style.display = "none";
+        document.getElementById('step-list').style.display = "none";
+        document.getElementById(stepId).style.display = "block";
     }
 </script>
 </body>
