@@ -11,20 +11,22 @@
     <style>
         :root {
             --ramp-yellow: #ffcc00;
-            --field-line: rgba(255, 255, 255, 0.4);
             --red: #ff4d4d;
             --green: #39ff14;
             --dark-card: rgba(15, 15, 15, 0.97);
         }
 
-        /* RESET PËR MOBILE */
+        /* RESET */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Exo 2', sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), 
-                        url('https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover;
+            /* KETU ESHTE NDRYSHIMI: E bejme sfondin te pershtatshem per PC dhe Tel */
+            background: #1a1a1a; /* Sfond i zi anash nese fotoja nuk e mbush ekranin */
+            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), 
+                              url('https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover; /* Per default ne PC */
             background-position: center;
+            background-repeat: no-repeat;
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -34,12 +36,22 @@
             position: relative;
         }
 
-        /* CONTAINER QË PËRSHTATET NË ÇDO TELEFON */
+        /* Rregullimi specifik per telefon qe te duken topat anash si ne PC */
+        @media (max-width: 600px) {
+            body {
+                background-size: auto 100%; /* E mban lartesine por tregon fushën me gjere anash */
+            }
+            .ramp-card {
+                width: 85% !important; /* Nuk e lejojme te ngjitet ne skaje */
+                padding: 30px 20px !important;
+            }
+        }
+
         .ramp-card {
             background: var(--dark-card);
             backdrop-filter: blur(15px);
             width: 92%;
-            max-width: 400px;
+            max-width: 380px; /* Madhesia fikse si ne PC */
             padding: 40px 25px;
             border-radius: 25px;
             border: 1px solid rgba(255,204,0,0.3);
@@ -48,20 +60,18 @@
             z-index: 10;
         }
 
-        h1 { color: var(--ramp-yellow); font-size: 30px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 5px; }
+        h1 { color: var(--ramp-yellow); font-size: 28px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 5px; }
         .sub-txt { color: white; font-size: 10px; letter-spacing: 5px; margin-bottom: 30px; opacity: 0.6; text-transform: uppercase; }
 
-        /* INPUTI I ID - I MODIFIKUAR PËR MOBILE */
         .p-input {
-            width: 100%; background: #000; border: 2px solid #333; padding: 18px;
-            border-radius: 12px; color: white; font-size: 20px; text-align: center;
+            width: 100%; background: #000; border: 2px solid #333; padding: 16px;
+            border-radius: 12px; color: white; font-size: 18px; text-align: center;
             outline: none; margin-bottom: 15px; transition: 0.3s;
         }
         .p-input:focus { border-color: var(--ramp-yellow); }
 
-        /* BUTONAT */
         .btn {
-            width: 100%; padding: 18px; border-radius: 12px; border: none; font-weight: 900;
+            width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 900;
             cursor: pointer; text-transform: uppercase; margin-bottom: 12px; transition: 0.2s; font-size: 14px;
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
@@ -70,12 +80,10 @@
         .btn-red { background: var(--red); color: white; }
         .btn:active { transform: scale(0.96); }
 
-        /* PANELI I INFORMACIONIT */
         .info-panel { background: rgba(255, 204, 0, 0.05); border: 1px solid rgba(255, 204, 0, 0.2); padding: 15px; border-radius: 15px; margin: 15px 0; color: white; text-align: left; font-size: 14px; line-height: 1.6; }
         .status-badge { display: inline-block; padding: 6px 15px; border-radius: 20px; font-size: 12px; font-weight: 900; margin-bottom: 12px; }
 
-        /* LISTA E LOJTARËVE ME ANIMACION */
-        .squad-list { margin-top: 15px; max-height: 300px; overflow-y: auto; text-align: left; }
+        .squad-list { margin-top: 15px; max-height: 250px; overflow-y: auto; text-align: left; }
         .player-row {
             background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 10px;
             margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
@@ -117,7 +125,7 @@
 </div>
 
 <script>
-    // Konfigurimi Firebase
+    // LOGJIKA JOTE ORIGJINALE (FIREBASE)
     const firebaseConfig = {
         apiKey: "AIzaSyBh_7BwfNbKbscPSW1ZN9Y_UvAntsjl9Wg",
         authDomain: "herolind-6ca5f.firebaseapp.com",
@@ -136,30 +144,21 @@
     async function kontrolloID() {
         const id = document.getElementById('pID').value.trim();
         if(!id) return;
-
         const mainDoc = await db.collection("config").doc("main").get();
         const staffDoc = await db.collection("config").doc("staff").get();
         if(!mainDoc.exists || !staffDoc.exists) return alert("Sistemi nuk është gati!");
-
         const d = mainDoc.data();
         const p = staffDoc.data().lojtaret.find(x => x.id === id);
-
         if(!p) return alert("ID e gabuar! Provo përsëri.");
-
         lojtari = p;
-        
-        // Logjika e ID-së unike si te kodi i vjetër
         const cleanVendi = d.vendi.replace(/\s+/g, '-').toLowerCase();
         const cleanOra = d.ora.replace(/:/g, '-');
         matchID = `match_${d.data.replace(/\./g, '-')}_${cleanOra}_${cleanVendi}`;
-
         matchDetailsHTML = `<b>${d.titulli || 'NDESHJA'}</b><br>📍 ${d.vendi}<br>📅 ${d.data} | Ora: ${d.ora}`;
         document.getElementById('matchInfoSmall').innerHTML = matchDetailsHTML;
-
         const currentMatch = await db.collection("matches").doc(matchID).get();
         let list = currentMatch.exists ? currentMatch.data().pjesemarresit : [];
         const konfirmimiEkzistues = list.find(x => x.id === id);
-
         if(konfirmimiEkzistues) {
             document.getElementById('finalMsg').innerHTML = konfirmimiEkzistues.vjen ? 
                 "<span style='color:var(--green)'>Mirëseveprore, " + p.n + "! ✅</span>" : 
@@ -169,12 +168,9 @@
         } else {
             document.getElementById('userName').innerText = p.n;
             document.getElementById('matchData').innerHTML = matchDetailsHTML;
-            
-            // Kontrolli i orarit (Paradite/Masdite/OFF)
             const indexData = parseInt(d.data.split('.')[0]) - 1;
             const orari = (p.s && p.s[indexData]) ? p.s[indexData].toUpperCase() : "OFF";
             const resDiv = document.getElementById('statusResult');
-
             if(orari === "16") {
                 resDiv.innerHTML = `<div class="status-badge" style="background:rgba(255,77,77,0.2); color:var(--red)">JE MASDITE (16:00) ❌</div>`;
             } else {
@@ -189,16 +185,12 @@
         const ref = db.collection("matches").doc(matchID);
         const doc = await ref.get();
         let list = doc.exists ? doc.data().pjesemarresit : [];
-
         list = list.filter(x => x.id !== lojtari.id);
         list.push({ n: lojtari.n, id: lojtari.id, vjen: vjen });
-        
         await ref.set({ pjesemarresit: list });
-
         document.getElementById('finalMsg').innerHTML = vjen ? 
             "<span style='color:var(--green)'>U konfirmove! ✅</span>" : 
             "<span style='color:var(--red)'>Njoftimi u dërgua! ❌</span>";
-
         shfaqListen(list);
         switchStep('step-list');
     }
@@ -207,18 +199,12 @@
         const div = document.getElementById('finalList');
         div.innerHTML = "";
         const vijne = lista.filter(x => x.vjen === true);
-        
         if(vijne.length === 0) {
             div.innerHTML = "<p style='color:#555; text-align:center; font-size:13px;'>Asnjë konfirmim deri tani.</p>";
             return;
         }
-
         vijne.forEach((p, i) => {
-            div.innerHTML += `
-                <div class="player-row">
-                    <span><b>${i+1}.</b> ${p.n}</span> 
-                    <i class="fas fa-check-circle" style="color:var(--green)"></i>
-                </div>`;
+            div.innerHTML += `<div class="player-row"><span><b>${i+1}.</b> ${p.n}</span><i class="fas fa-check-circle" style="color:var(--green)"></i></div>`;
         });
     }
 
