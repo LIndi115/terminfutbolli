@@ -20,13 +20,13 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Exo 2', sans-serif; -webkit-tap-highlight-color: transparent; }
 
         body {
-            /* KETU ESHTE NDRYSHIMI: E bejme sfondin te pershtatshem per PC dhe Tel */
-            background: #1a1a1a; /* Sfond i zi anash nese fotoja nuk e mbush ekranin */
+            background-color: #000;
+            /* SFONDI QË NUK LEJON KOPITJEN E TOPAVE */
             background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), 
                               url('https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover; /* Per default ne PC */
-            background-position: center;
             background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover; /* Default per PC */
             height: 100vh;
             width: 100vw;
             display: flex;
@@ -36,22 +36,25 @@
             position: relative;
         }
 
-        /* Rregullimi specifik per telefon qe te duken topat anash si ne PC */
-        @media (max-width: 600px) {
+        /* RREGULLIMI KRYESOR PËR TELEFON (QË TË DOKET SI NË PC) */
+        @media (max-width: 768px) {
             body {
-                background-size: auto 100%; /* E mban lartesine por tregon fushën me gjere anash */
+                /* Kjo e bën foton të mos pritet anash në ekranet e ngushtë */
+                background-size: auto 100%; 
             }
             .ramp-card {
-                width: 85% !important; /* Nuk e lejojme te ngjitet ne skaje */
+                width: 85% !important; /* Karta nuk ngjitet ne skaje, shihen topat */
+                max-width: 340px !important;
                 padding: 30px 20px !important;
             }
+            h1 { font-size: 24px !important; }
         }
 
         .ramp-card {
             background: var(--dark-card);
             backdrop-filter: blur(15px);
             width: 92%;
-            max-width: 380px; /* Madhesia fikse si ne PC */
+            max-width: 380px;
             padding: 40px 25px;
             border-radius: 25px;
             border: 1px solid rgba(255,204,0,0.3);
@@ -60,7 +63,7 @@
             z-index: 10;
         }
 
-        h1 { color: var(--ramp-yellow); font-size: 28px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 5px; }
+        h1 { color: var(--ramp-yellow); font-size: 30px; font-weight: 900; font-style: italic; text-transform: uppercase; margin-bottom: 5px; }
         .sub-txt { color: white; font-size: 10px; letter-spacing: 5px; margin-bottom: 30px; opacity: 0.6; text-transform: uppercase; }
 
         .p-input {
@@ -87,11 +90,15 @@
         .player-row {
             background: rgba(255,255,255,0.03); padding: 12px 15px; border-radius: 10px;
             margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-            border-left: 4px solid var(--green); color: white; animation: fadeIn 0.4s ease;
+            border-left: 4px solid var(--green); color: white;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
         #step-confirm, #step-list { display: none; }
+
+        /* Scrollbar për listën */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--ramp-yellow); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -118,14 +125,12 @@
     <div id="step-list">
         <h3 id="finalMsg" style="margin-bottom: 5px;"></h3>
         <p id="matchInfoSmall" style="font-size:12px; color:var(--ramp-yellow); margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px; opacity: 0.8;"></p>
-        <p style="font-size:12px; color:#888; text-align:left; margin-bottom: 10px;">Lojtarët që vijnë:</p>
         <div class="squad-list" id="finalList"></div>
         <button class="btn btn-yellow" style="margin-top:20px; background:none; border:1px solid #444; color:white;" onclick="location.reload()">DIL <i class="fas fa-sign-out-alt"></i></button>
     </div>
 </div>
 
 <script>
-    // LOGJIKA JOTE ORIGJINALE (FIREBASE)
     const firebaseConfig = {
         apiKey: "AIzaSyBh_7BwfNbKbscPSW1ZN9Y_UvAntsjl9Wg",
         authDomain: "herolind-6ca5f.firebaseapp.com",
@@ -144,21 +149,28 @@
     async function kontrolloID() {
         const id = document.getElementById('pID').value.trim();
         if(!id) return;
+
         const mainDoc = await db.collection("config").doc("main").get();
         const staffDoc = await db.collection("config").doc("staff").get();
         if(!mainDoc.exists || !staffDoc.exists) return alert("Sistemi nuk është gati!");
+
         const d = mainDoc.data();
         const p = staffDoc.data().lojtaret.find(x => x.id === id);
+
         if(!p) return alert("ID e gabuar! Provo përsëri.");
+
         lojtari = p;
         const cleanVendi = d.vendi.replace(/\s+/g, '-').toLowerCase();
         const cleanOra = d.ora.replace(/:/g, '-');
         matchID = `match_${d.data.replace(/\./g, '-')}_${cleanOra}_${cleanVendi}`;
+
         matchDetailsHTML = `<b>${d.titulli || 'NDESHJA'}</b><br>📍 ${d.vendi}<br>📅 ${d.data} | Ora: ${d.ora}`;
         document.getElementById('matchInfoSmall').innerHTML = matchDetailsHTML;
+
         const currentMatch = await db.collection("matches").doc(matchID).get();
         let list = currentMatch.exists ? currentMatch.data().pjesemarresit : [];
         const konfirmimiEkzistues = list.find(x => x.id === id);
+
         if(konfirmimiEkzistues) {
             document.getElementById('finalMsg').innerHTML = konfirmimiEkzistues.vjen ? 
                 "<span style='color:var(--green)'>Mirëseveprore, " + p.n + "! ✅</span>" : 
@@ -168,9 +180,11 @@
         } else {
             document.getElementById('userName').innerText = p.n;
             document.getElementById('matchData').innerHTML = matchDetailsHTML;
+            
             const indexData = parseInt(d.data.split('.')[0]) - 1;
             const orari = (p.s && p.s[indexData]) ? p.s[indexData].toUpperCase() : "OFF";
             const resDiv = document.getElementById('statusResult');
+
             if(orari === "16") {
                 resDiv.innerHTML = `<div class="status-badge" style="background:rgba(255,77,77,0.2); color:var(--red)">JE MASDITE (16:00) ❌</div>`;
             } else {
