@@ -3,125 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N'FORMË | Fitness Management Cloud</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>N'FORMË FITNESS | Cloud Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #10b981; 
-            --dark: #0a0a0a; 
-            --card: #161616;
-            --border: rgba(16, 185, 129, 0.2); 
-            --danger: #ef4444;
+            --primary: #10b981; --dark: #050505; --card: #111111;
+            --border: rgba(16, 185, 129, 0.2); --success: #10b981;
+            --danger: #ff4d4d; --glass: rgba(255, 255, 255, 0.03);
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--dark); color: white; line-height: 1.6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--dark); color: white; padding-bottom: 50px; }
         
-        /* Login */
         #loginOverlay {
-            position: fixed; inset: 0; background: var(--dark); z-index: 9999;
-            display: flex; justify-content: center; align-items: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark); z-index: 9999; display: flex; justify-content: center; align-items: center;
         }
         .login-card {
-            background: var(--card); padding: 40px; border-radius: 25px; border: 1px solid var(--primary);
-            width: 90%; max-width: 380px; text-align: center;
+            background: var(--card); padding: 40px; border-radius: 30px; border: 1px solid var(--primary);
+            width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(16, 185, 129, 0.1);
         }
 
-        /* Layout */
         header { 
-            padding: 20px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; 
-            align-items: center; position: sticky; top: 0; z-index: 1000;
+            padding: 20px; background: var(--card); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000;
         }
-        .container { max-width: 1000px; margin: auto; padding: 20px; }
+        .container { max-width: 900px; margin: auto; padding: 20px; }
 
-        /* Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
+        @media (min-width: 600px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
+        
         .stat-card { 
-            background: var(--card); padding: 20px; border-radius: 18px; border-left: 4px solid var(--primary);
+            background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid var(--border); text-align: center;
+            border-top: 4px solid var(--primary);
         }
-        .stat-card h3 { font-size: 1.5rem; }
-        .stat-card p { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.6; }
+        .stat-card h3 { font-size: 1.6rem; color: white; }
+        .stat-card p { font-size: 0.6rem; opacity: 0.7; text-transform: uppercase; font-weight: 800; }
 
-        /* Search */
-        #searchInput { 
-            width: 100%; padding: 15px; border-radius: 12px; background: var(--card); 
-            border: 1px solid var(--border); color: white; margin-bottom: 10px; outline: none;
-        }
-        .search-results { background: var(--card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
-        .result-item { 
-            padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; 
-            display: flex; align-items: center; gap: 15px; transition: 0.3s; 
-        }
-        .result-item:hover { background: rgba(16, 185, 129, 0.1); }
-        .result-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); }
+        .search-box { position: relative; margin-bottom: 20px; }
+        #searchInput { width: 100%; padding: 18px; border-radius: 15px; background: var(--card); border: 1px solid var(--border); color: white; text-align: center; outline: none; transition: 0.3s; }
+        #searchInput:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(16, 185, 129, 0.1); }
+        
+        .search-results { background: #1a1a1a; border-radius: 15px; border: 1px solid var(--border); margin-top: 5px; max-height: 400px; overflow-y: auto; display: none; }
+        .result-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; display: flex; align-items: center; gap: 15px; }
+        .result-item img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); }
 
-        /* Profile */
-        .player-profile { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid var(--border); display: none; margin-top: 10px; }
-        .profile-header { display: flex; gap: 20px; align-items: center; border-bottom: 1px solid #222; padding-bottom: 20px; }
-        .profile-img { width: 100px; height: 100px; border-radius: 20px; object-fit: cover; border: 2px solid var(--primary); }
+        .player-profile { background: var(--card); border-radius: 25px; border: 1px solid var(--border); padding: 30px; margin-top: 20px; display: none; }
+        .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; }
+        .profile-img-large { width: 80px; height: 80px; border-radius: 20px; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; transition: 0.3s; }
+        .profile-img-large:hover { transform: scale(1.05); }
+        
+        .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        @media (min-width: 500px) { .months-grid { grid-template-columns: repeat(4, 1fr); } }
 
-        .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
-        .month-btn { 
-            background: #222; border: 1px solid #333; color: white; padding: 12px 5px; 
-            border-radius: 10px; cursor: pointer; text-align: center; font-size: 0.75rem; 
-        }
+        .month-btn { background: var(--glass); border: 1px solid var(--border); color: white; padding: 15px 5px; border-radius: 12px; cursor: pointer; text-align: center; font-size: 0.75rem; transition: 0.2s; }
         .month-btn.paid { background: var(--primary); color: black; font-weight: 800; border: none; }
 
-        /* Buttons */
-        .btn-main { background: var(--primary); color: black; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 800; cursor: pointer; }
-        .btn-danger { background: none; color: var(--danger); border: 1px solid var(--danger); padding: 10px; border-radius: 10px; width: 100%; margin-top: 20px; cursor: pointer; font-size: 0.8rem; }
+        .history-list { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; font-size: 0.85rem; max-height: 150px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); }
+        .history-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
 
-        /* Modals */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-content { background: var(--card); padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; border: 1px solid var(--primary); }
-        input[type="text"], input[type="password"], input[type="number"], input[type="file"] { 
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 10px; background: #000; border: 1px solid #333; color: white; outline: none; 
+        .btn-main { background: var(--primary); color: black; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+        .btn-danger { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 25px; font-weight: 800; }
+        
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: #121212; padding: 35px; border-radius: 30px; width: 90%; max-width: 400px; border: 1px solid var(--primary); }
+        
+        /* Fullscreen Image Overlay */
+        #imageOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; cursor: pointer; }
+        #fullImage { max-width: 95%; max-height: 80vh; border-radius: 15px; border: 2px solid var(--primary); object-fit: contain; }
+
+        input[type="text"], input[type="password"], input[type="number"], input[type="file"] {
+            width:100%; padding:15px; border-radius:12px; background:#000; border:1px solid var(--border); color:white; margin-bottom:15px; outline:none;
         }
     </style>
 </head>
 <body>
 
+    <!-- FULLSCREEN IMAGE VIEW -->
+    <div id="imageOverlay" onclick="closeImage()">
+        <img id="fullImage" src="">
+        <p style="margin-top: 20px; opacity: 0.6; font-size: 0.8rem;">Klikni kudo për ta mbyllur</p>
+    </div>
+
     <!-- LOGIN -->
     <div id="loginOverlay">
         <div class="login-card">
-            <h1 style="color: var(--primary); font-weight: 900; font-style: italic;">N'FORMË</h1>
-            <p style="opacity: 0.5; margin-bottom: 25px; font-size: 0.8rem;">Sistemi i Menaxhimit Cloud</p>
+            <h1 style="color: var(--primary); font-style: italic; font-weight: 900;">N'FORMË</h1>
+            <p style="opacity: 0.6; margin-bottom: 30px; font-size: 0.9rem;">Sistemi i Menaxhimit 2026</p>
             <input type="text" id="user" placeholder="Përdoruesi">
             <input type="password" id="pass" placeholder="Fjalëkalimi">
-            <button class="btn-main" style="width:100%" onclick="handleLogin()">HYR</button>
+            <button class="btn-main" style="width:100%" onclick="handleLogin()">KYÇU</button>
         </div>
     </div>
 
     <!-- MAIN APP -->
     <div id="mainApp" style="display: none;">
         <header>
-            <div style="font-weight: 900; font-size: 1.4rem; font-style: italic;">N'FORMË <span style="color: var(--primary);">FITNESS</span></div>
-            <button class="btn-main" onclick="openModal('regModal')">+ ANËTAR</button>
+            <div style="font-weight: 900; color: var(--primary); font-size: 1.5rem; font-style: italic;">N'FORMË FITNESS</div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-main" onclick="openModal('regModal')">+ ANËTAR</button>
+                <button onclick="logout()" style="background:none; border:none; color:white; opacity:0.5; cursor:pointer;">Dalja</button>
+            </div>
         </header>
 
         <div class="container">
-            <div class="stats-grid">
-                <div class="stat-card"><h3 id="stat-total">0</h3><p>Anëtarë</p></div>
-                <div class="stat-card"><h3 id="stat-money" style="color: var(--primary);">0€</h3><p>Arka (Muaj)</p></div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h4 style="color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Pasqyra mujore</h4>
+                <select id="dashboardMonth" onchange="updateDashboard()" style="background:var(--card); border:1px solid var(--primary); color:var(--primary); padding:8px; border-radius:10px; font-weight:800; outline:none;"></select>
             </div>
 
-            <input type="text" id="searchInput" placeholder="Kërko klientin..." onkeyup="searchPlayer()">
-            <div id="searchResults" class="search-results"></div>
+            <div class="stats-grid">
+                <div class="stat-card"><h3 id="stat-total">0</h3><p>Gjithsej</p></div>
+                <div class="stat-card"><h3 id="stat-paid" style="color: var(--success);">0</h3><p>Paguar</p></div>
+                <div class="stat-card"><h3 id="stat-debt" style="color: var(--danger);">0</h3><p>Borxhli</p></div>
+                <div class="stat-card"><h3 id="stat-money" style="color: var(--primary);">0€</h3><p>Arka</p></div>
+            </div>
 
-            <!-- PROFILE VIEW -->
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Kërko anëtarin..." onkeyup="searchPlayer()">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+
             <div id="playerProfile" class="player-profile">
                 <div class="profile-header">
-                    <img id="viewImg" src="" class="profile-img">
-                    <div>
+                    <img id="viewImg" src="" class="profile-img-large" onclick="zoomImage()">
+                    <div style="flex-grow: 1;">
                         <h2 id="viewName" style="text-transform: uppercase;">---</h2>
-                        <p id="viewStatus" style="font-weight: 800; font-size: 0.7rem; margin-top: 5px;">---</p>
+                        <p id="regDate" style="font-size: 0.7rem; opacity: 0.5;"></p>
                     </div>
+                    <div id="viewStatus" style="padding: 10px 15px; border-radius: 12px; font-weight: 800; font-size: 0.7rem;">---</div>
                 </div>
 
                 <div class="months-grid" id="monthsGrid"></div>
-                
-                <button class="btn-danger" onclick="deletePlayer()">FSHIJ KLIENTIN</button>
-                <button onclick="closeProfile()" style="width:100%; background:none; border:none; color:white; opacity:0.4; margin-top:15px; cursor:pointer;">Mbyll</button>
+                <p style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 10px; font-weight: 800;">HISTORIKU I PAGESAVE:</p>
+                <div class="history-list" id="paymentHistory"></div>
+
+                <button class="btn-danger" onclick="deletePlayer()">FSHIJ ANËTARIN</button>
+                <p onclick="closeProfile()" style="text-align:center; margin-top:20px; cursor:pointer; opacity:0.5;">Mbyll profilin</p>
             </div>
         </div>
     </div>
@@ -129,8 +146,7 @@
     <!-- MODAL REGJISTRIMI -->
     <div id="regModal" class="modal">
         <div class="modal-content">
-            <h2>Shto Anëtar</h2>
-            <p style="font-size: 0.7rem; opacity: 0.5; margin-bottom: 10px;">Zgjidh foton dhe shkruaj emrin</p>
+            <h2>Anëtar i Ri</h2>
             <input type="file" id="regFoto" accept="image/*">
             <input type="text" id="regName" placeholder="Emri dhe Mbiemri">
             <button class="btn-main" style="width:100%" id="saveBtn" onclick="saveNewPlayer()">RUAJ ANËTARIN</button>
@@ -141,10 +157,10 @@
     <!-- MODAL PAGESA -->
     <div id="payModal" class="modal">
         <div class="modal-content">
-            <h2 id="selectedMonthDisplay" style="margin-bottom: 20px;">---</h2>
+            <h2 id="payModalTitle">Pagesa</h2>
             <input type="number" id="payAmount" value="20">
             <button class="btn-main" style="width:100%" onclick="executePayment()">KONFIRMO PAGESËN</button>
-            <p onclick="closeModal('payModal')" style="text-align:center; margin-top:15px; cursor:pointer; opacity:0.5;">Mbyll</p>
+            <p onclick="closeModal('payModal')" style="text-align:center; margin-top:15px; cursor:pointer; opacity:0.5;">Anulo</p>
         </div>
     </div>
 
@@ -152,7 +168,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // KONFIGURIMI
         const IMGBB_API_KEY = "eb62a6907856c805db10887e57fa34ea";
         const firebaseConfig = {
             apiKey: "AIzaSyBh_7bwfNbKbscPSW1ZN9Y_UvAntsjl9Wg",
@@ -162,145 +177,166 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const clientsRef = collection(db, "fitness_clients");
+        const dbCloud = getFirestore(app);
+        const playersRef = collection(dbCloud, "fitness_members");
 
-        let clients = [];
+        let players = [];
         let currentId = null;
         let selectedMonthForPayment = null;
         const months = ["Janar", "Shkurt", "Mars", "Prill", "Maj", "Qershor", "Korrik", "Gusht", "Shtator", "Tetor", "Nëntor", "Dhjetor"];
 
-        // Login Logic
         window.handleLogin = () => {
-            const u = document.getElementById('user').value;
-            const p = document.getElementById('pass').value;
-            if(u === "NFORME" && p === "admin2026") {
+            if(document.getElementById('user').value === "NFORME" && document.getElementById('pass').value === "admin2026") {
                 sessionStorage.setItem('nforme_auth', 'true');
                 location.reload();
-            } else { alert("Të dhënat e gabuara!"); }
+            } else alert("Përdoruesi ose fjalëkalimi i gabuar!");
         };
+        window.logout = () => { sessionStorage.removeItem('nforme_auth'); location.reload(); };
 
         if(sessionStorage.getItem('nforme_auth') === 'true') {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
+            
+            const sel = document.getElementById('dashboardMonth');
+            const curIdx = new Date().getMonth();
+            months.forEach((m, i) => {
+                let opt = new Option(m, m);
+                if(i === curIdx) opt.selected = true;
+                sel.add(opt);
+            });
 
-            onSnapshot(clientsRef, (snapshot) => {
-                clients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            onSnapshot(playersRef, (snapshot) => {
+                players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateDashboard();
                 if(currentId) openProfile(currentId);
             });
         }
 
+        window.zoomImage = () => {
+            const imgSrc = document.getElementById('viewImg').src;
+            document.getElementById('fullImage').src = imgSrc;
+            document.getElementById('imageOverlay').style.display = 'flex';
+        };
+
+        window.closeImage = () => {
+            document.getElementById('imageOverlay').style.display = 'none';
+        };
+
         window.saveNewPlayer = async () => {
             const name = document.getElementById('regName').value;
             const fileInput = document.getElementById('regFoto');
             const btn = document.getElementById('saveBtn');
-            if(!name) return alert("Shkruaj emrin!");
+            if(!name) return alert("Ju lutem shkruani emrin!");
 
             btn.innerText = "Duke u ngarkuar...";
             btn.disabled = true;
 
             let photoUrl = "https://via.placeholder.com/150";
-
             if(fileInput.files[0]) {
-                const formData = new FormData();
-                formData.append("image", fileInput.files[0]);
-                
+                const fd = new FormData(); fd.append("image", fileInput.files[0]);
                 try {
-                    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                        method: "POST",
-                        body: formData
-                    });
-                    const data = await response.json();
-                    photoUrl = data.data.url;
-                } catch (e) {
-                    console.error("Gabim në ImgBB");
-                }
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+                    const d = await res.json(); photoUrl = d.data.url;
+                } catch(e) { console.error("ImgBB error"); }
             }
 
-            await addDoc(clientsRef, {
-                name, 
-                photoUrl,
-                payments: [],
-                registeredAt: new Date().toLocaleDateString('sq-AL')
+            await addDoc(playersRef, { 
+                name, photoUrl, payments: [], 
+                registeredAt: new Date().toLocaleDateString('sq-AL') 
             });
             
-            btn.innerText = "RUAJ ANËTARIN";
-            btn.disabled = false;
+            btn.innerText = "RUAJ ANËTARIN"; btn.disabled = false;
             closeModal('regModal');
-            document.getElementById('regName').value = "";
-            fileInput.value = "";
+            document.getElementById('regName').value = ""; fileInput.value = "";
         };
 
         window.openProfile = (id) => {
             currentId = id;
-            const c = clients.find(x => x.id === id);
-            if(!c) return;
+            const p = players.find(x => x.id === id);
+            if(!p) return;
             document.getElementById('playerProfile').style.display = 'block';
-            document.getElementById('viewName').innerText = c.name;
-            document.getElementById('viewImg').src = c.photoUrl;
+            document.getElementById('viewName').innerText = p.name;
+            document.getElementById('viewImg').src = p.photoUrl;
+            document.getElementById('regDate').innerText = "Anëtarësuar: " + p.registeredAt;
             
             document.getElementById('monthsGrid').innerHTML = months.map(m => {
-                const pay = c.payments.find(px => px.month === m);
+                const pay = p.payments.find(px => px.month === m);
                 return `<div class="month-btn ${pay ? 'paid' : ''}" onclick="initPay('${m}', ${!!pay})">${m}<br>${pay ? pay.amount+'€' : '❌'}</div>`;
             }).join('');
 
+            const hist = document.getElementById('paymentHistory');
+            hist.innerHTML = p.payments.length ? p.payments.map(pay => `
+                <div class="history-item"><span>${pay.month}</span><small>${pay.date}</small><b>+${pay.amount}€</b></div>`).reverse().join('') : "Nuk ka pagesa.";
+
             const currentMonthName = months[new Date().getMonth()];
-            const isPaid = c.payments.some(pay => pay.month === currentMonthName);
+            const isPaid = p.payments.some(pay => pay.month === currentMonthName);
             const st = document.getElementById('viewStatus');
             st.innerText = isPaid ? "STATUSI: AKTIV" : "STATUSI: BORXHLI";
-            st.style.color = isPaid ? "var(--primary)" : "var(--danger)";
-            document.getElementById('searchResults').innerHTML = "";
+            st.style.background = isPaid ? "var(--success)" : "var(--danger)";
+            st.style.color = isPaid ? "black" : "white";
+
+            document.getElementById('searchResults').style.display = 'none';
         };
 
-        window.initPay = (m, isPaid) => {
-            if(!isPaid) {
-                selectedMonthForPayment = m;
-                document.getElementById('selectedMonthDisplay').innerText = "Pagesa: " + m;
-                openModal('payModal');
+        window.initPay = (m, isPaid) => { 
+            if(!isPaid) { 
+                selectedMonthForPayment = m; 
+                document.getElementById('payModalTitle').innerText = "Pagesa për: " + m; 
+                openModal('payModal'); 
             } 
         };
 
         window.executePayment = async () => {
-            const amount = document.getElementById('payAmount').value;
-            const c = clients.find(x => x.id === currentId);
-            const newPayments = [...c.payments, {
+            const amountInput = document.getElementById('payAmount');
+            const amount = amountInput.value;
+            if(!amount || amount <= 0) return alert("Jepni një vlerë të saktë!");
+
+            const p = players.find(x => x.id === currentId);
+            const newPayments = [...p.payments, { 
                 month: selectedMonthForPayment, 
-                amount: parseFloat(amount).toFixed(2)
+                amount: parseFloat(amount).toFixed(2), 
+                date: new Date().toLocaleDateString('sq-AL') 
             }];
-            await updateDoc(doc(db, "fitness_clients", currentId), { payments: newPayments });
-            closeModal('payModal');
+
+            try {
+                await updateDoc(doc(dbCloud, "fitness_members", currentId), { payments: newPayments });
+                closeModal('payModal');
+                amountInput.value = "20";
+            } catch (e) { alert("Gabim gjatë pagesës!"); }
         };
 
         window.updateDashboard = () => {
-            const m = months[new Date().getMonth()];
-            let money = 0;
-            clients.forEach(c => {
-                const py = c.payments.find(x => x.month === m);
-                if(py) money += parseFloat(py.amount);
+            const m = document.getElementById('dashboardMonth').value;
+            let paid = 0, money = 0;
+            players.forEach(p => {
+                const py = p.payments.find(x => x.month === m);
+                if(py) { paid++; money += parseFloat(py.amount); }
             });
-            document.getElementById('stat-total').innerText = clients.length;
+            document.getElementById('stat-total').innerText = players.length;
+            document.getElementById('stat-paid').innerText = paid;
+            document.getElementById('stat-debt').innerText = players.length - paid;
             document.getElementById('stat-money').innerText = money.toFixed(2) + "€";
         };
 
         window.searchPlayer = () => {
             const val = document.getElementById('searchInput').value.toLowerCase();
             const res = document.getElementById('searchResults');
-            if(val.length < 1) { res.innerHTML = ""; return; }
-            const filtered = clients.filter(c => c.name.toLowerCase().includes(val));
-            res.innerHTML = filtered.map(c => `
-                <div class="result-item" onclick="openProfile('${c.id}')">
-                    <img src="${c.photoUrl}">
-                    <span>${c.name}</span>
-                </div>`).join('');
+            if(val.length < 1) { res.style.display = 'none'; return; }
+            const filtered = players.filter(p => p.name.toLowerCase().includes(val));
+            res.innerHTML = filtered.map(p => `<div class="result-item" onclick="openProfile('${p.id}')"><img src="${p.photoUrl}"><span>${p.name}</span></div>`).join('');
+            res.style.display = 'block';
         };
 
         window.deletePlayer = async () => {
-            if(confirm("A jeni i sigurt për fshirjen?")) {
-                await deleteDoc(doc(db, "fitness_clients", currentId));
-                closeProfile();
-            } 
+            const pass = prompt("Shkruani fjalëkalimin e sistemit për fshirje:");
+            if(pass === "admin2026") {
+                if(confirm("Fshije anëtarin përfundimisht?")) {
+                    await deleteDoc(doc(dbCloud, "fitness_members", currentId));
+                    closeProfile();
+                }
+            } else if (pass !== null) alert("Fjalëkalimi i gabuar!");
         };
+
         window.openModal = (id) => document.getElementById(id).style.display = 'flex';
         window.closeModal = (id) => document.getElementById(id).style.display = 'none';
         window.closeProfile = () => { currentId = null; document.getElementById('playerProfile').style.display = 'none'; };
