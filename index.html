@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>N'FORMË FITNESS | Cloud Management</title>
+    <title>N'FORMË FITNESS | Management</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #10b981; --dark: #050505; --card: #111111;
             --border: rgba(16, 185, 129, 0.2); --success: #10b981;
-            --danger: #ff4d4d; --glass: rgba(255, 255, 255, 0.03);
+            --danger: #ff4d4d; --warning: #f59e0b;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--dark); color: white; padding-bottom: 50px; }
         
+        /* Login Style */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); z-index: 9999; display: flex; justify-content: center; align-items: center;
         }
         .login-card {
             background: var(--card); padding: 40px; border-radius: 30px; border: 1px solid var(--primary);
-            width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(16, 185, 129, 0.1);
+            width: 90%; max-width: 400px; text-align: center;
         }
 
         header { 
@@ -29,138 +30,148 @@
         }
         .container { max-width: 900px; margin: auto; padding: 20px; }
 
+        /* Dashboard Stats */
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px; }
-        @media (min-width: 600px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-        
         .stat-card { 
             background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid var(--border); text-align: center;
-            border-top: 4px solid var(--primary);
+            border-top: 4px solid var(--primary); cursor: pointer; transition: 0.3s;
         }
-        .stat-card h3 { font-size: 1.6rem; color: white; }
+        .stat-card:active { transform: scale(0.95); }
+        .stat-card h3 { font-size: 1.4rem; }
         .stat-card p { font-size: 0.6rem; opacity: 0.7; text-transform: uppercase; font-weight: 800; }
 
-        .search-box { position: relative; margin-bottom: 20px; }
-        #searchInput { width: 100%; padding: 18px; border-radius: 15px; background: var(--card); border: 1px solid var(--border); color: white; text-align: center; outline: none; transition: 0.3s; }
-        #searchInput:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(16, 185, 129, 0.1); }
+        /* Search */
+        #searchInput { width: 100%; padding: 18px; border-radius: 15px; background: var(--card); border: 1px solid var(--border); color: white; text-align: center; outline: none; margin-bottom: 20px; }
         
-        .search-results { background: #1a1a1a; border-radius: 15px; border: 1px solid var(--border); margin-top: 5px; max-height: 400px; overflow-y: auto; display: none; }
+        /* Lists */
+        .list-container { background: var(--card); border-radius: 20px; border: 1px solid var(--border); display: none; margin-bottom: 20px; overflow: hidden; }
+        .list-header { padding: 15px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .result-item { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; display: flex; align-items: center; gap: 15px; }
-        .result-item img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); }
+        .result-item img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1px solid var(--primary); }
 
+        /* Profile */
         .player-profile { background: var(--card); border-radius: 25px; border: 1px solid var(--border); padding: 30px; margin-top: 20px; display: none; }
         .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; }
-        .profile-img-large { width: 80px; height: 80px; border-radius: 20px; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; transition: 0.3s; }
-        .profile-img-large:hover { transform: scale(1.05); }
+        .profile-img-large { width: 100px; height: 100px; border-radius: 20px; object-fit: cover; border: 2px solid var(--primary); cursor: zoom-in; }
         
-        .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        @media (min-width: 500px) { .months-grid { grid-template-columns: repeat(4, 1fr); } }
+        .status-badge { padding: 10px 20px; border-radius: 12px; font-weight: 800; display: inline-block; margin-bottom: 20px; width: 100%; text-align: center; }
+        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+        .status-expired { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .status-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid var(--warning); }
 
-        .month-btn { background: var(--glass); border: 1px solid var(--border); color: white; padding: 15px 5px; border-radius: 12px; cursor: pointer; text-align: center; font-size: 0.75rem; transition: 0.2s; }
-        .month-btn.paid { background: var(--primary); color: black; font-weight: 800; border: none; }
+        /* History */
+        .history-list { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; font-size: 0.85rem; max-height: 200px; overflow-y: auto; }
+        .history-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
 
-        .history-list { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; font-size: 0.85rem; max-height: 150px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); }
-        .history-item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
-
-        .btn-main { background: var(--primary); color: black; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 800; cursor: pointer; }
-        .btn-danger { background: rgba(255, 77, 77, 0.1); color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 12px; cursor: pointer; width: 100%; margin-top: 25px; font-weight: 800; }
+        /* Buttons & Modals */
+        .btn-main { background: var(--primary); color: black; border: none; padding: 15px 25px; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-danger { background: none; color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 10px; cursor: pointer; margin-top: 20px; width: 100%; }
         
         .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { background: #121212; padding: 35px; border-radius: 30px; width: 90%; max-width: 400px; border: 1px solid var(--primary); }
+        .modal-content { background: #121212; padding: 25px; border-radius: 30px; width: 95%; max-width: 400px; border: 1px solid var(--border); }
         
-        /* Fullscreen Image Overlay */
-        #imageOverlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; cursor: pointer; }
-        #fullImage { max-width: 95%; max-height: 80vh; border-radius: 15px; border: 2px solid var(--primary); object-fit: contain; }
-
-        input[type="text"], input[type="password"], input[type="number"], input[type="file"] {
-            width:100%; padding:15px; border-radius:12px; background:#000; border:1px solid var(--border); color:white; margin-bottom:15px; outline:none;
+        /* FULL SCREEN IMAGE VIEWER */
+        #fullscreenViewer {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,1); z-index: 5000; justify-content: center; align-items: center;
         }
+        #fullscreenViewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        #fullscreenViewer .close-view { position: absolute; top: 20px; right: 20px; font-size: 2rem; color: white; cursor: pointer; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 50%; }
+
+        input { width:100%; padding:15px; border-radius:12px; background:#000; border:1px solid var(--border); color:white; margin-bottom:15px; outline:none; }
     </style>
 </head>
 <body>
 
-    <!-- FULLSCREEN IMAGE VIEW -->
-    <div id="imageOverlay" onclick="closeImage()">
+    <!-- Full Screen Image -->
+    <div id="fullscreenViewer" onclick="this.style.display='none'">
+        <span class="close-view">✕</span>
         <img id="fullImage" src="">
-        <p style="margin-top: 20px; opacity: 0.6; font-size: 0.8rem;">Klikni kudo për ta mbyllur</p>
     </div>
 
-    <!-- LOGIN -->
     <div id="loginOverlay">
         <div class="login-card">
-            <h1 style="color: var(--primary); font-style: italic; font-weight: 900;">N'FORMË</h1>
-            <p style="opacity: 0.6; margin-bottom: 30px; font-size: 0.9rem;">Sistemi i Menaxhimit 2026</p>
-            <input type="text" id="user" placeholder="Përdoruesi">
+            <h1 style="color: var(--primary); font-weight: 900;">N'FORMË</h1>
+            <p style="opacity: 0.5; margin-bottom: 20px;">Sistemi i Menaxhimit</p>
             <input type="password" id="pass" placeholder="Fjalëkalimi">
-            <button class="btn-main" style="width:100%" onclick="handleLogin()">KYÇU</button>
+            <button class="btn-main" onclick="handleLogin()">KYÇU</button>
         </div>
     </div>
 
-    <!-- MAIN APP -->
     <div id="mainApp" style="display: none;">
         <header>
-            <div style="font-weight: 900; color: var(--primary); font-size: 1.5rem; font-style: italic;">N'FORMË FITNESS</div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn-main" onclick="openModal('regModal')">+ ANËTAR</button>
-                <button onclick="logout()" style="background:none; border:none; color:white; opacity:0.5; cursor:pointer;">Dalja</button>
-            </div>
+            <div style="font-weight: 900; color: var(--primary);">N'FORMË</div>
+            <button class="btn-main" style="width:auto; margin:0;" onclick="openModal('regModal')">+ SHTO</button>
         </header>
 
         <div class="container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h4 style="color: var(--primary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Pasqyra mujore</h4>
-                <select id="dashboardMonth" onchange="updateDashboard()" style="background:var(--card); border:1px solid var(--primary); color:var(--primary); padding:8px; border-radius:10px; font-weight:800; outline:none;"></select>
-            </div>
-
             <div class="stats-grid">
-                <div class="stat-card"><h3 id="stat-total">0</h3><p>Gjithsej</p></div>
-                <div class="stat-card"><h3 id="stat-paid" style="color: var(--success);">0</h3><p>Paguar</p></div>
-                <div class="stat-card"><h3 id="stat-debt" style="color: var(--danger);">0</h3><p>Borxhli</p></div>
-                <div class="stat-card"><h3 id="stat-money" style="color: var(--primary);">0€</h3><p>Arka</p></div>
+                <div class="stat-card" onclick="showFilteredList('active')">
+                    <h3 id="stat-active">0</h3>
+                    <p>Aktivë</p>
+                </div>
+                <div class="stat-card" onclick="showFilteredList('expired')">
+                    <h3 id="stat-expired" style="color: var(--danger);">0</h3>
+                    <p>Të skaduar</p>
+                </div>
             </div>
 
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Kërko anëtarin..." onkeyup="searchPlayer()">
-                <div id="searchResults" class="search-results"></div>
+            <input type="text" id="searchInput" placeholder="Kërko anëtarin..." onkeyup="searchPlayer()">
+
+            <div id="filteredListContainer" class="list-container">
+                <div class="list-header">
+                    <span id="listTitle" style="font-weight: 800; font-size: 0.8rem; color: var(--primary);">LISTA</span>
+                    <span style="cursor:pointer; opacity:0.5" onclick="closeFilteredList()">MBYLL ✕</span>
+                </div>
+                <div id="filteredResults"></div>
             </div>
 
             <div id="playerProfile" class="player-profile">
+                <div style="color: var(--primary); cursor: pointer; margin-bottom: 15px; font-weight: 800;" onclick="closeProfile()">← MBALLINA</div>
+                
                 <div class="profile-header">
-                    <img id="viewImg" src="" class="profile-img-large" onclick="zoomImage()">
-                    <div style="flex-grow: 1;">
-                        <h2 id="viewName" style="text-transform: uppercase;">---</h2>
+                    <img id="viewImg" src="" class="profile-img-large" onclick="openFullScreen(this.src)">
+                    <div>
+                        <h2 id="viewName">---</h2>
                         <p id="regDate" style="font-size: 0.7rem; opacity: 0.5;"></p>
                     </div>
-                    <div id="viewStatus" style="padding: 10px 15px; border-radius: 12px; font-weight: 800; font-size: 0.7rem;">---</div>
                 </div>
 
-                <div class="months-grid" id="monthsGrid"></div>
-                <p style="font-size: 0.7rem; opacity: 0.6; margin-bottom: 10px; font-weight: 800;">HISTORIKU I PAGESAVE:</p>
+                <div id="statusBadge" class="status-badge">---</div>
+                <button class="btn-main" onclick="openModal('payModal')">PAGUAJ +30 DITË</button>
+                <h4 style="margin: 20px 0 10px 0; font-size: 0.7rem; opacity: 0.6; letter-spacing: 1px;">HISTORIKU</h4>
                 <div class="history-list" id="paymentHistory"></div>
-
-                <button class="btn-danger" onclick="deletePlayer()">FSHIJ ANËTARIN</button>
-                <p onclick="closeProfile()" style="text-align:center; margin-top:20px; cursor:pointer; opacity:0.5;">Mbyll profilin</p>
+                <button class="btn-danger" onclick="openModal('deleteModal')">Fshij Anëtarin</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL REGJISTRIMI -->
+    <!-- Modals -->
     <div id="regModal" class="modal">
         <div class="modal-content">
-            <h2>Anëtar i Ri</h2>
+            <h3>Anëtar i Ri</h3><br>
             <input type="file" id="regFoto" accept="image/*">
             <input type="text" id="regName" placeholder="Emri dhe Mbiemri">
-            <button class="btn-main" style="width:100%" id="saveBtn" onclick="saveNewPlayer()">RUAJ ANËTARIN</button>
-            <p onclick="closeModal('regModal')" style="text-align:center; margin-top:15px; cursor:pointer; opacity:0.5;">Anulo</p>
+            <button class="btn-main" id="saveBtn" onclick="saveNewPlayer()">RUAJ</button>
+            <button class="btn-danger" style="border:none" onclick="closeModal('regModal')">ANULO</button>
         </div>
     </div>
 
-    <!-- MODAL PAGESA -->
     <div id="payModal" class="modal">
         <div class="modal-content">
-            <h2 id="payModalTitle">Pagesa</h2>
+            <h3>Konfirmo Pagesën</h3><br>
             <input type="number" id="payAmount" value="20">
-            <button class="btn-main" style="width:100%" onclick="executePayment()">KONFIRMO PAGESËN</button>
-            <p onclick="closeModal('payModal')" style="text-align:center; margin-top:15px; cursor:pointer; opacity:0.5;">Anulo</p>
+            <button class="btn-main" onclick="executePayment()">KONFIRMO</button>
+            <button class="btn-danger" style="border:none" onclick="closeModal('payModal')">ANULO</button>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--danger);">Siguria e Sistemit</h3><br>
+            <input type="password" id="deletePass" placeholder="Fjalëkalimi i sistemit">
+            <button class="btn-main" style="background: var(--danger); color: white;" onclick="confirmDelete()">FSHIJ</button>
+            <button class="btn-main" style="background: #333; color: white;" onclick="closeModal('deleteModal')">ANULO</button>
         </div>
     </div>
 
@@ -169,11 +180,12 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const IMGBB_API_KEY = "eb62a6907856c805db10887e57fa34ea";
+        const ADMIN_PASS = "admin2026"; 
+
         const firebaseConfig = {
             apiKey: "AIzaSyBh_7bwfNbKbscPSW1ZN9Y_UvAntsjl9Wg",
             authDomain: "herolind-6ca5f.firebaseapp.com",
-            projectId: "herolind-6ca5f",
-            storageBucket: "herolind-6ca5f.appspot.com"
+            projectId: "herolind-6ca5f"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -182,29 +194,17 @@
 
         let players = [];
         let currentId = null;
-        let selectedMonthForPayment = null;
-        const months = ["Janar", "Shkurt", "Mars", "Prill", "Maj", "Qershor", "Korrik", "Gusht", "Shtator", "Tetor", "Nëntor", "Dhjetor"];
 
         window.handleLogin = () => {
-            if(document.getElementById('user').value === "NFORME" && document.getElementById('pass').value === "admin2026") {
+            if(document.getElementById('pass').value === ADMIN_PASS) {
                 sessionStorage.setItem('nforme_auth', 'true');
                 location.reload();
-            } else alert("Përdoruesi ose fjalëkalimi i gabuar!");
+            } else { alert("Fjalëkalim i gabuar!"); }
         };
-        window.logout = () => { sessionStorage.removeItem('nforme_auth'); location.reload(); };
 
         if(sessionStorage.getItem('nforme_auth') === 'true') {
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
-            
-            const sel = document.getElementById('dashboardMonth');
-            const curIdx = new Date().getMonth();
-            months.forEach((m, i) => {
-                let opt = new Option(m, m);
-                if(i === curIdx) opt.selected = true;
-                sel.add(opt);
-            });
-
             onSnapshot(playersRef, (snapshot) => {
                 players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateDashboard();
@@ -212,134 +212,147 @@
             });
         }
 
-        window.zoomImage = () => {
-            const imgSrc = document.getElementById('viewImg').src;
-            document.getElementById('fullImage').src = imgSrc;
-            document.getElementById('imageOverlay').style.display = 'flex';
+        // Funksioni për Full Screen Image
+        window.openFullScreen = (url) => {
+            document.getElementById('fullImage').src = url;
+            document.getElementById('fullscreenViewer').style.display = 'flex';
         };
 
-        window.closeImage = () => {
-            document.getElementById('imageOverlay').style.display = 'none';
-        };
+        window.showFilteredList = (type) => {
+            const container = document.getElementById('filteredListContainer');
+            const results = document.getElementById('filteredResults');
+            const title = document.getElementById('listTitle');
+            let filtered = [];
+            const today = new Date();
 
-        window.saveNewPlayer = async () => {
-            const name = document.getElementById('regName').value;
-            const fileInput = document.getElementById('regFoto');
-            const btn = document.getElementById('saveBtn');
-            if(!name) return alert("Ju lutem shkruani emrin!");
-
-            btn.innerText = "Duke u ngarkuar...";
-            btn.disabled = true;
-
-            let photoUrl = "https://via.placeholder.com/150";
-            if(fileInput.files[0]) {
-                const fd = new FormData(); fd.append("image", fileInput.files[0]);
-                try {
-                    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
-                    const d = await res.json(); photoUrl = d.data.url;
-                } catch(e) { console.error("ImgBB error"); }
+            if(type === 'active') {
+                title.innerText = "ANËTARËT AKTIVË";
+                filtered = players.filter(p => p.expireDate && new Date(p.expireDate) > today);
+            } else {
+                title.innerText = "ANËTARËT E SKADUAR";
+                filtered = players.filter(p => !p.expireDate || new Date(p.expireDate) <= today);
             }
 
-            await addDoc(playersRef, { 
-                name, photoUrl, payments: [], 
-                registeredAt: new Date().toLocaleDateString('sq-AL') 
-            });
-            
-            btn.innerText = "RUAJ ANËTARIN"; btn.disabled = false;
-            closeModal('regModal');
-            document.getElementById('regName').value = ""; fileInput.value = "";
+            results.innerHTML = filtered.map(p => `
+                <div class="result-item">
+                    <img src="${p.photoUrl}" onclick="event.stopPropagation(); openFullScreen('${p.photoUrl}')">
+                    <div style="flex-grow: 1;" onclick="openProfile('${p.id}')">
+                        <div style="font-weight: 800;">${p.name}</div>
+                        <div style="font-size: 0.6rem; opacity: 0.5;">${p.expireDate ? 'Deri: ' + new Date(p.expireDate).toLocaleDateString('sq-AL') : 'Ska pagesë'}</div>
+                    </div>
+                </div>
+            `).join('');
+            container.style.display = 'block';
+            document.getElementById('playerProfile').style.display = 'none';
         };
+
+        window.closeFilteredList = () => document.getElementById('filteredListContainer').style.display = 'none';
 
         window.openProfile = (id) => {
             currentId = id;
             const p = players.find(x => x.id === id);
             if(!p) return;
             document.getElementById('playerProfile').style.display = 'block';
+            document.getElementById('filteredListContainer').style.display = 'none';
             document.getElementById('viewName').innerText = p.name;
             document.getElementById('viewImg').src = p.photoUrl;
-            document.getElementById('regDate').innerText = "Anëtarësuar: " + p.registeredAt;
+            document.getElementById('regDate').innerText = "Regjistruar: " + p.registeredAt;
             
-            document.getElementById('monthsGrid').innerHTML = months.map(m => {
-                const pay = p.payments.find(px => px.month === m);
-                return `<div class="month-btn ${pay ? 'paid' : ''}" onclick="initPay('${m}', ${!!pay})">${m}<br>${pay ? pay.amount+'€' : '❌'}</div>`;
-            }).join('');
-
-            const hist = document.getElementById('paymentHistory');
-            hist.innerHTML = p.payments.length ? p.payments.map(pay => `
-                <div class="history-item"><span>${pay.month}</span><small>${pay.date}</small><b>+${pay.amount}€</b></div>`).reverse().join('') : "Nuk ka pagesa.";
-
-            const currentMonthName = months[new Date().getMonth()];
-            const isPaid = p.payments.some(pay => pay.month === currentMonthName);
-            const st = document.getElementById('viewStatus');
-            st.innerText = isPaid ? "STATUSI: AKTIV" : "STATUSI: BORXHLI";
-            st.style.background = isPaid ? "var(--success)" : "var(--danger)";
-            st.style.color = isPaid ? "black" : "white";
-
-            document.getElementById('searchResults').style.display = 'none';
-        };
-
-        window.initPay = (m, isPaid) => { 
-            if(!isPaid) { 
-                selectedMonthForPayment = m; 
-                document.getElementById('payModalTitle').innerText = "Pagesa për: " + m; 
-                openModal('payModal'); 
-            } 
+            const badge = document.getElementById('statusBadge');
+            const today = new Date();
+            if(!p.expireDate) {
+                badge.innerText = "PA PAGESË";
+                badge.className = "status-badge status-expired";
+            } else {
+                const exp = new Date(p.expireDate);
+                const diff = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
+                if(diff < 0) {
+                    badge.innerText = `SKADUAR (Para ${Math.abs(diff)} ditëve)`;
+                    badge.className = "status-badge status-expired";
+                } else if(diff <= 5) {
+                    badge.innerText = `SKADON PAS ${diff} DITËVE`;
+                    badge.className = "status-badge status-warning";
+                } else {
+                    badge.innerText = `AKTIV (${diff} ditë mbetura)`;
+                    badge.className = "status-badge status-active";
+                }
+            }
+            document.getElementById('paymentHistory').innerHTML = (p.payments || []).map(pay => `
+                <div class="history-item">
+                    <span>${pay.amount}€ (${pay.date})</span>
+                    <span style="color:var(--primary)">Skadon: ${new Date(pay.newExpire).toLocaleDateString('sq-AL')}</span>
+                </div>
+            `).reverse().join('');
         };
 
         window.executePayment = async () => {
-            const amountInput = document.getElementById('payAmount');
-            const amount = amountInput.value;
-            if(!amount || amount <= 0) return alert("Jepni një vlerë të saktë!");
-
+            const amount = document.getElementById('payAmount').value;
             const p = players.find(x => x.id === currentId);
-            const newPayments = [...p.payments, { 
-                month: selectedMonthForPayment, 
-                amount: parseFloat(amount).toFixed(2), 
-                date: new Date().toLocaleDateString('sq-AL') 
-            }];
+            let startDate = new Date();
+            if(p.expireDate && new Date(p.expireDate) > new Date()) startDate = new Date(p.expireDate);
+            const newExpire = new Date(startDate);
+            newExpire.setDate(newExpire.getDate() + 30);
+            const newPay = { amount: amount || "20", date: new Date().toLocaleDateString('sq-AL'), newExpire: newExpire.toISOString() };
+            const updated = p.payments ? [...p.payments, newPay] : [newPay];
+            await updateDoc(doc(dbCloud, "fitness_members", currentId), { payments: updated, expireDate: newExpire.toISOString() });
+            closeModal('payModal');
+        };
 
-            try {
-                await updateDoc(doc(dbCloud, "fitness_members", currentId), { payments: newPayments });
-                closeModal('payModal');
-                amountInput.value = "20";
-            } catch (e) { alert("Gabim gjatë pagesës!"); }
+        window.confirmDelete = async () => {
+            if(document.getElementById('deletePass').value === ADMIN_PASS) {
+                await deleteDoc(doc(dbCloud, "fitness_members", currentId));
+                closeModal('deleteModal');
+                closeProfile();
+            } else { alert("Fjalëkalimi i gabuar!"); }
+        };
+
+        window.saveNewPlayer = async () => {
+            const name = document.getElementById('regName').value;
+            const fileInput = document.getElementById('regFoto');
+            if(!name) return;
+            document.getElementById('saveBtn').innerText = "Duke u ruajtur...";
+            let photoUrl = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            if(fileInput.files[0]) {
+                const fd = new FormData(); fd.append("image", fileInput.files[0]);
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: fd });
+                const d = await res.json(); photoUrl = d.data.url;
+            }
+            await addDoc(playersRef, { name, photoUrl, payments: [], expireDate: null, registeredAt: new Date().toLocaleDateString('sq-AL') });
+            closeModal('regModal');
+            document.getElementById('saveBtn').innerText = "RUAJ";
         };
 
         window.updateDashboard = () => {
-            const m = document.getElementById('dashboardMonth').value;
-            let paid = 0, money = 0;
+            let active = 0, expired = 0;
+            const today = new Date();
             players.forEach(p => {
-                const py = p.payments.find(x => x.month === m);
-                if(py) { paid++; money += parseFloat(py.amount); }
+                if(p.expireDate && new Date(p.expireDate) > today) active++;
+                else expired++;
             });
-            document.getElementById('stat-total').innerText = players.length;
-            document.getElementById('stat-paid').innerText = paid;
-            document.getElementById('stat-debt').innerText = players.length - paid;
-            document.getElementById('stat-money').innerText = money.toFixed(2) + "€";
+            document.getElementById('stat-active').innerText = active;
+            document.getElementById('stat-expired').innerText = expired;
         };
 
         window.searchPlayer = () => {
             const val = document.getElementById('searchInput').value.toLowerCase();
-            const res = document.getElementById('searchResults');
-            if(val.length < 1) { res.style.display = 'none'; return; }
-            const filtered = players.filter(p => p.name.toLowerCase().includes(val));
-            res.innerHTML = filtered.map(p => `<div class="result-item" onclick="openProfile('${p.id}')"><img src="${p.photoUrl}"><span>${p.name}</span></div>`).join('');
-            res.style.display = 'block';
-        };
-
-        window.deletePlayer = async () => {
-            const pass = prompt("Shkruani fjalëkalimin e sistemit për fshirje:");
-            if(pass === "admin2026") {
-                if(confirm("Fshije anëtarin përfundimisht?")) {
-                    await deleteDoc(doc(dbCloud, "fitness_members", currentId));
-                    closeProfile();
-                }
-            } else if (pass !== null) alert("Fjalëkalimi i gabuar!");
+            const container = document.getElementById('filteredListContainer');
+            const results = document.getElementById('filteredResults');
+            if(val.length > 0) {
+                const filtered = players.filter(p => p.name.toLowerCase().includes(val));
+                document.getElementById('listTitle').innerText = "REZULTATET";
+                results.innerHTML = filtered.map(p => `
+                    <div class="result-item">
+                        <img src="${p.photoUrl}" onclick="event.stopPropagation(); openFullScreen('${p.photoUrl}')">
+                        <div onclick="openProfile('${p.id}')"><b>${p.name}</b></div>
+                    </div>
+                `).join('');
+                container.style.display = 'block';
+            } else { container.style.display = 'none'; }
         };
 
         window.openModal = (id) => document.getElementById(id).style.display = 'flex';
         window.closeModal = (id) => document.getElementById(id).style.display = 'none';
-        window.closeProfile = () => { currentId = null; document.getElementById('playerProfile').style.display = 'none'; };
+        window.closeProfile = () => document.getElementById('playerProfile').style.display = 'none';
     </script>
 </body>
 </html>
